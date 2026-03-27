@@ -11,7 +11,13 @@ from datetime import datetime
 app = Flask(__name__)
 CORS(app)
 
+from flask_session import Session
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key')
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_COOKIE_SAMESITE'] = None
+app.config['SESSION_COOKIE_SECURE'] = False
+Session(app)
+
 
 db_url = os.environ.get('DATABASE_URL')
 if db_url:
