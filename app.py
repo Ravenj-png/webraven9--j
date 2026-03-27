@@ -10,7 +10,9 @@ from datetime import datetime
 from flask_session import Session
 
 app = Flask(__name__)
-CORS(app)
+CORS(app,
+    supports_credentials=True,
+    origins=['https://webraven9-j.onrender.com/'])
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key')
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -101,6 +103,15 @@ def register():
     db.session.commit()
 
     return jsonify({'password': password}), 200
+
+@app.route('/<path:path>', methods=['OPTIONS'])
+def handle_options(path):
+    return '', 200, {
+        'Access-Control-Allow-Origin': 'https://webraven9-j-i.onrender.com',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    }
 
 @app.route('/login', methods=['POST'])
 def login():
