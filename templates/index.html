@@ -74,7 +74,14 @@ table th, table td{
     padding:5px;
     text-align:center;
 }
-a{color:yellow;}
+a{
+    color:yellow;
+    text-decoration:none;
+    display:inline-block;
+    margin-top:10px;
+    text-align:center;
+    width:100%;
+}
 </style>
 </head>
 <body>
@@ -87,13 +94,14 @@ a{color:yellow;}
   </a>
 </div>
 
-<!-- LOGIN -->
+<!-- STUDENT LOGIN -->
 <div class="section">
-<h3>Login</h3>
+<h3>Student Login</h3>
 <input id="loginReg" placeholder="Reg Number">
 <input id="loginPassword" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
-<button onclick="recoverPassword()">Forgot Password?</button>
+<button onclick="studentLogin()">Login</button>
+<!-- Forgot Password: WhatsApp link -->
+<a href="https://wa.me/2567227707?text=Password%20reset%20for%20voting%20system" target="_blank">Forgot Password?</a>
 </div>
 
 <!-- REGISTER -->
@@ -104,7 +112,14 @@ a{color:yellow;}
 <button onclick="register()">Register</button>
 </div>
 
-<!-- VOTING -->
+<!-- ADMIN LOGIN (separate) -->
+<div class="section">
+<h3>Admin Login</h3>
+<input id="adminPassword" type="password" placeholder="Admin Password">
+<button onclick="adminLogin()">Login as Admin</button>
+</div>
+
+<!-- VOTING (visible after student login) -->
 <div id="voteArea" class="section" style="display:none;">
 <h3>Vote</h3>
 <div id="voteContent"></div>
@@ -116,18 +131,18 @@ a{color:yellow;}
 <div id="results"></div>
 </div>
 
-<!-- ADMIN -->
+<!-- ADMIN PANEL (visible after admin login) -->
 <div id="adminPanel" class="section" style="display:none;">
 <h3>Admin Panel</h3>
 <button onclick="resetVotes()">Reset Votes</button>
-<button onclick="loadAdminData()">Load Data</button>
+<button onclick="loadAdminStudents()">Load Students</button>
 <div id="adminData"></div>
 </div>
 
 <script>
 const API = "https://webraven9-j.onrender.com";
 
-// REGISTER
+// ---------- REGISTER ----------
 async function register(){
     let reg = document.getElementById("regReg").value.trim();
     let phone = document.getElementById("regPhone").value.trim();
@@ -143,8 +158,8 @@ async function register(){
     else alert(data.error);
 }
 
-// LOGIN
-async function login(){
+// ---------- STUDENT LOGIN ----------
+async function studentLogin(){
     let reg = document.getElementById("loginReg").value.trim();
     let pass = document.getElementById("loginPassword").value.trim();
     if(!reg || !pass) return alert("Enter registration and password");
@@ -159,78 +174,103 @@ async function login(){
 
     if(data.success){
         alert("Logged in");
-        document.getElementById("voteArea").style.display="block";
+        document.getElementById("voteArea").style.display = "block";
+        document.getElementById("resultsSection").style.display = "block";
         await loadVoting();
-    } else if(data.role && (data.role=="ravenR" || data.role=="hunter")){
-        document.getElementById("adminPanel").style.display="block";
-        alert("Admin logged in as "+data.role);
-    } else alert(data.error);
-}
-
-// RECOVER PASSWORD
-async function recoverPassword(){
-    let reg = document.getElementById("loginReg").value.trim();
-    if(!reg) return alert("Enter your registration number");
-
-    let res = await fetch(API+"/recover",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({reg_number:reg})
-    });
-    let data = await res.json();
-    if(data.password) alert("Your password: " + data.password);
-    else alert(data.error || "Unable to recover password");
-}
-
-// LOAD VOTING
-let userVotes = {}; // Track votes per post
-async function loadVoting(){
-    let res = await fetch(API+"/voting_data",{credentials:"include"});
-    let data = await res.json();
-    let posts = data.posts_order || [];
-    if(posts.length===0){
-        document.getElementById("voteContent").innerHTML = "No posts available for voting";
-        return;
+        await loadResults();
+    } else {
+        alert(data.error);
     }
-
-    let html="";
-    for(let post of posts){
-        let resCand = await fetch(API+"/candidates?post="+encodeURIComponent(post), {credentials:"include"});
-        let candData = await resCand.json();
-        html += `<h4>${post}</h4>`;
-        html += `<div id="post-${post}">`;
-        (candData.candidates||[]).forEach((c,i)=>{
-            html += `<button onclick="vote('${post}',${i})" id="btn-${post}-${i}">${c.name}</button>`;
-        });
-        html += `</div>`;
-    }
-    document.getElementById("voteContent").innerHTML = html;
 }
 
-// VOTE
-async function vote(post,i){
-    let res = await fetch(API+"/vote",{
+// ---------- ADMIN LOGIN ----------
+async function adminLogin(){
+    let pass = document.getElementById("adminPassword").value.trim();
+    if(!pass) return alert("Enter admin password");
+
+    let res = await fetch(API+"/admin/login",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         credentials:"include",
-        body:JSON.stringify({post:post, candidate_index:i})
+        body:JSON.stringify({password:pass})
+    });
+    let data = await res.json();
+    if(data.role){
+        document.getElementById("adminPanel").style.display = "block";
+        alert("Admin logged in as " + data.role);
+    } else {
+        alert(data.error);
+    }
+}
+
+// ---------- VOTING (SEQUENTIAL) ----------
+let posts = [];       // list of posts
+let currentPostIndex = 0;
+let votedPosts = {};  // track which posts have been voted
+
+async function loadVoting(){
+    // Get voting data from backend
+    let res = await fetch(API+"/voting_data", {credentials:"include"});
+    let data = await res.json();
+    posts = data.posts_order || [];
+    if(posts.length === 0){
+        document.getElementById("voteContent").innerHTML = "No posts available for voting";
+        return;
+    }
+    currentPostIndex = 0;
+    loadCurrentPost();
+}
+
+async function loadCurrentPost(){
+    if(currentPostIndex >= posts.length){
+        document.getElementById("voteContent").innerHTML = "<p>You have voted in all posts. Thank you!</p>";
+        return;
+    }
+
+    let post = posts[currentPostIndex];
+    // If already voted this post (should not happen, but just in case)
+    if(votedPosts[post]){
+        currentPostIndex++;
+        loadCurrentPost();
+        return;
+    }
+
+    // Fetch candidates for this post
+    let res = await fetch(API+"/candidates?post="+encodeURIComponent(post), {credentials:"include"});
+    let data = await res.json();
+    let candidates = data.candidates || [];
+
+    let html = `<h4>${post}</h4>`;
+    candidates.forEach((c, idx) => {
+        html += `<button onclick="vote('${post}', ${idx})">${c.name}</button>`;
+    });
+    document.getElementById("voteContent").innerHTML = html;
+}
+
+async function vote(post, candidateIndex){
+    let res = await fetch(API+"/vote", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        credentials:"include",
+        body:JSON.stringify({post:post, candidate_index:candidateIndex})
     });
     let data = await res.json();
     if(data.success){
         alert("Vote registered!");
-        // Disable all buttons for this post
-        let buttons = document.querySelectorAll(`#post-${post} button`);
-        buttons.forEach(btn=>btn.disabled=true);
-        userVotes[post]=true;
-        await loadResults();
-    } else alert(data.error);
+        votedPosts[post] = true;
+        currentPostIndex++;
+        loadCurrentPost();   // move to next post
+        await loadResults(); // refresh results
+    } else {
+        alert(data.error);
+    }
 }
 
-// LOAD RESULTS
+// ---------- LOAD RESULTS ----------
 async function loadResults(){
     let res = await fetch(API+"/results");
     let data = await res.json();
-    let html="";
+    let html = "";
     for(let post in data){
         html += `<h4>${post}</h4>`;
         (data[post]||[]).forEach(c=>{
@@ -238,44 +278,35 @@ async function loadResults(){
         });
     }
     document.getElementById("results").innerHTML = html;
-    document.getElementById("resultsSection").style.display = "block";
 }
 
-// ADMIN DATA
-async function loadAdminData(){
-    let res = await fetch(API + "/admin/data",{credentials:"include"});
-    let data = await res.json();
-    let html="";
-
-    if(data.role==="ravenR"){
-        html += `<table style="width:100%;border-collapse:collapse;color:white;">
-                    <tr><th>Reg</th><th>Phone</th><th>Password</th></tr>`;
-        data.students.forEach(s=>{
-            html += `<tr><td>${s.reg_number}</td><td>${s.phone}</td><td>${s.password}</td></tr>`;
-        });
-        html += "</table>";
-    } else if(data.role==="hunter"){
-        html += `<table style="width:100%;border-collapse:collapse;color:white;">
-                    <tr><th>Reg</th><th>Votes</th></tr>`;
-        data.votes.forEach(v=>{
-            html += `<tr><td>${v.reg_number}</td><td>${v.vote_summary}</td></tr>`;
-        });
-        html += `<h4>Total Votes per Post</h4>`;
-        for(let post in data.total){
-            html += `${post}: ${data.total[post]}<br>`;
-        }
+// ---------- ADMIN ACTIONS ----------
+async function loadAdminStudents(){
+    let res = await fetch(API+"/admin/students", {credentials:"include"});
+    if(!res.ok){
+        alert("Unauthorized or error");
+        return;
     }
-
+    let data = await res.json();
+    let html = `<table style="width:100%;border-collapse:collapse;color:white;">
+                    <tr><th>Reg Number</th><th>Has Voted</th></tr>`;
+    data.forEach(s => {
+        html += `<tr><td>${s.reg_number}</td><td>${s.has_voted}</td></tr>`;
+    });
+    html += `</table>`;
     document.getElementById("adminData").innerHTML = html;
 }
 
-// RESET VOTES
 async function resetVotes(){
-    let res = await fetch(API+"/admin/reset",{method:"POST",credentials:"include"});
+    let res = await fetch(API+"/admin/reset", {method:"POST", credentials:"include"});
     let data = await res.json();
-    if(data.success) alert("Votes reset successfully");
+    if(data.success){
+        alert("Votes reset successfully");
+        await loadResults(); // refresh results display
+    } else {
+        alert(data.error);
+    }
 }
 </script>
-
 </body>
 </html>
