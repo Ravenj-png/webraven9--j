@@ -1,27 +1,29 @@
 import os
 import secrets
 import json
-import re
+from flask import Flask, request, jsonify, session, render_template
 from flask_cors import CORS
-from flask import render_template
-from datetime import datetime
-from flask import Flask, request, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+from datetime import datetime
 
 app = Flask(__name__)
-CORS(app)  # allow cross-origin for local testing
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///voting.db')
+CORS(app)
+
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key')
+
+db_url = os.environ.get('DATABASE_URL')
+if db_url:
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///voting.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-@app.route('/')
-def index():
-    return render_template('f.html')  # your HTML file
-
-# ------------------ MODELS ------------------
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     reg_number = db.Column(db.String(20), unique=True, nullable=False)
@@ -38,11 +40,6 @@ class Candidate(db.Model):
     img = db.Column(db.String(200), default='https://via.placeholder.com/60')
     votes = db.Column(db.Integer, default=0)
 
-class AllowedReg(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    reg_number = db.Column(db.String(20), unique=True, nullable=False)
-
-# ------------------ HELPERS ------------------
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -63,11 +60,9 @@ def admin_required(role=None):
         return decorated_function
     return decorator
 
-# Always true for now, can implement real timing later
-def voting_window_active():
-    return True
-
-import re
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -78,193 +73,151 @@ def register():
     if not reg or not phone:
         return jsonify({'error': 'Missing fields'}), 400
 
-    # Regex pattern for allowed format: e.g., BACS/25D/U/A0487
-    pattern = r'^BACS/\d+[A-Z]?/[A-Z]/A\d+$'
-    if not re.match(pattern, reg, re.IGNORECASE):
-        return jsonify({'error': 'Registration number not recognized, please visit the office'}), 403
-
-    # Check if already registered
     if Student.query.filter_by(reg_number=reg).first():
         return jsonify({'error': 'Already registered'}), 400
 
-    # Generate password and create student
     password = secrets.token_urlsafe(6)[:8]
+
     student = Student(
         reg_number=reg.upper(),
         phone=phone,
         password_hash=generate_password_hash(password)
     )
+
     db.session.add(student)
     db.session.commit()
 
-    return jsonify({'message': 'Registered successfully', 'password': password}), 200
+    return jsonify({'password': password}), 200
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     reg = data.get('reg_number')
     password = data.get('password')
-    if not reg or not password:
-        return jsonify({'error': 'Missing credentials'}), 400
 
     student = Student.query.filter_by(reg_number=reg).first()
+
     if not student or not check_password_hash(student.password_hash, password):
         return jsonify({'error': 'Invalid credentials'}), 401
 
     session['user_id'] = student.id
     return jsonify({'success': True}), 200
 
-import secrets
-from werkzeug.security import generate_password_hash
-
-@app.route('/admin/reset_password', methods=['POST'])
-@admin_required(role='ravenR')
-def reset_student_password():
-    data = request.get_json()
-    reg = data.get('reg_number')
-
-    student = Student.query.filter_by(reg_number=reg).first()
-    if not student:
-        return jsonify({'error': 'Student not found'}), 404
-
-    # Generate new password
-    new_password = secrets.token_urlsafe(6)[:8]
-    student.password_hash = generate_password_hash(new_password)
-    db.session.commit()
-
-    # Return new password to admin
-    return jsonify({'new_password': new_password, 'reg_number': student.reg_number, 'phone': student.phone}), 200
-
 @app.route('/voting_data', methods=['GET'])
 @login_required
 def voting_data():
     student = Student.query.get(session['user_id'])
-    posts = db.session.query(Candidate.post).distinct().order_by(Candidate.post).all()
+    posts = db.session.query(Candidate.post).distinct().all()
     posts_order = [p[0] for p in posts]
     voted_posts = json.loads(student.voted_posts) if student.voted_posts else {}
-    return jsonify({'posts_order': posts_order, 'voted_posts': voted_posts}), 200
+    return jsonify({'posts_order': posts_order, 'voted_posts': voted_posts})
 
-@app.route('/candidates', methods=['GET'])
+@app.route('/candidates')
 @login_required
-def get_candidates():
+def candidates():
     post = request.args.get('post')
-    if not post:
-        return jsonify({'error': 'Missing post'}), 400
-    candidates = Candidate.query.filter_by(post=post).all()
-    return jsonify({'candidates': [{'id': c.id, 'name': c.name, 'img': c.img, 'votes': c.votes} for c in candidates]}), 200
+    data = Candidate.query.filter_by(post=post).all()
+    return jsonify({'candidates': [
+        {'name': c.name, 'img': c.img, 'votes': c.votes}
+        for c in data
+    ]})
 
 @app.route('/vote', methods=['POST'])
 @login_required
 def vote():
-    if not voting_window_active():
-        return jsonify({'error': 'Voting is not active'}), 403
-
     data = request.get_json()
     post = data.get('post')
-    candidate_index = data.get('candidate_index')
-    if post is None or candidate_index is None:
-        return jsonify({'error': 'Missing data'}), 400
+    index = data.get('candidate_index')
 
     student = Student.query.get(session['user_id'])
     voted_posts = json.loads(student.voted_posts) if student.voted_posts else {}
+
     if post in voted_posts:
-        return jsonify({'error': 'Already voted for this post'}), 403
+        return jsonify({'error': 'Already voted'}), 403
 
-    candidates = Candidate.query.filter_by(post=post).order_by(Candidate.id).all()
-    if candidate_index < 0 or candidate_index >= len(candidates):
-        return jsonify({'error': 'Invalid candidate index'}), 400
+    candidates = Candidate.query.filter_by(post=post).all()
+    candidate = candidates[index]
 
-    candidate = candidates[candidate_index]
     candidate.votes += 1
     voted_posts[post] = candidate.id
     student.voted_posts = json.dumps(voted_posts)
 
-    total_posts = Candidate.query.with_entities(Candidate.post).distinct().count()
-    if len(voted_posts) >= total_posts:
-        student.has_voted = True
-
     db.session.commit()
-    return jsonify({'success': True}), 200
+    return jsonify({'success': True})
 
-@app.route('/results', methods=['GET'])
+@app.route('/results')
 def results():
     posts = db.session.query(Candidate.post).distinct().all()
     result = {}
     for (post,) in posts:
-        candidates = Candidate.query.filter_by(post=post).all()
-        result[post] = [{'name': c.name, 'votes': c.votes} for c in candidates]
-    return jsonify(result), 200
+        result[post] = [
+            {'name': c.name, 'votes': c.votes}
+            for c in Candidate.query.filter_by(post=post).all()
+        ]
+    return jsonify(result)
 
-@app.route('/recover', methods=['POST'])
-def recover():
-    data = request.get_json()
-    phone = data.get('phone')
-    student = Student.query.filter_by(phone=phone).first()
-    if not student:
-        return jsonify({'error': 'Phone number not found'}), 404
-    # In real life, send SMS; here, return password for simplicity
-    return jsonify({'password': '***hidden***'}), 200
-
-# ------------------ ADMIN ROUTES ------------------
-ADMIN_CREDENTIALS = {'hunter': 'hunter', 'ravenR': 'ravenR'}
+# ---------- ADMIN ----------
+ADMIN_PASSWORDS = ["hunter", "ravenR"]
 
 @app.route('/admin/login', methods=['POST'])
 def admin_login():
-    data = request.get_json()
-    password = data.get('password')
-    if not password:
-        return jsonify({'error': 'Missing password'}), 400
+    pwd = request.get_json().get('password')
+    if pwd in ADMIN_PASSWORDS:
+        session['admin_role'] = pwd
+        return jsonify({'role': pwd})
+    return jsonify({'error': 'Wrong password'}), 401
 
-    if password in ADMIN_CREDENTIALS.values():
-        session['admin_role'] = password
-        return jsonify({'role': password}), 200
-    return jsonify({'error': 'Invalid password'}), 401
-
-@app.route('/admin/reset', methods=['POST'])
+@app.route('/admin/reset_votes', methods=['POST'])
 @admin_required(role='ravenR')
 def reset_votes():
-    Candidate.query.update({Candidate.votes: 0})
-    Student.query.update({Student.has_voted: False, Student.voted_posts: '{}'})
+    for c in Candidate.query.all():
+        c.votes = 0
+    for s in Student.query.all():
+        s.voted_posts = '{}'
+        s.has_voted = False
     db.session.commit()
-    return jsonify({'success': True}), 200
+    return jsonify({'success': True})
 
-@app.route('/admin/students', methods=['GET'])
+@app.route('/admin/students')
 @admin_required(role='ravenR')
-def admin_students():
-    students = Student.query.all()
-    return jsonify([{'reg_number': s.reg_number, 'has_voted': s.has_voted} for s in students]), 200
+def students():
+    return jsonify([
+        {
+            'reg': s.reg_number,
+            'phone': s.phone
+        } for s in Student.query.all()
+    ])
 
-@app.route('/admin/votes', methods=['GET'])
-@admin_required()
-def admin_votes():
-    posts = db.session.query(Candidate.post).distinct().all()
-    result = {}
-    for (post,) in posts:
-        candidates = Candidate.query.filter_by(post=post).all()
-        result[post] = [{'name': c.name, 'votes': c.votes} for c in candidates]
-    return jsonify(result), 200
+@app.route('/admin/reset_password', methods=['POST'])
+@admin_required(role='ravenR')
+def reset_password():
+    reg = request.get_json().get('reg_number')
+    student = Student.query.filter_by(reg_number=reg).first()
 
-# ------------------ INIT ------------------
+    if not student:
+        return jsonify({'error': 'Not found'}), 404
+
+    new_pass = secrets.token_urlsafe(6)[:8]
+    student.password_hash = generate_password_hash(new_pass)
+    db.session.commit()
+
+    return jsonify({'new_password': new_pass})
+
 def init_db():
     with app.app_context():
         db.create_all()
         if Candidate.query.count() == 0:
-            default_candidates = [
-                {'name': 'Alice', 'post': 'Guild'},
-                {'name': 'Bob', 'post': 'Guild'},
-                {'name': 'Charlie', 'post': 'Guild'},
-                {'name': 'Dave', 'post': 'Vice Guild'},
-                {'name': 'Eve', 'post': 'Vice Guild'},
-                {'name': 'Hank', 'post': 'Secretary'},
-                {'name': 'Ivy', 'post': 'Secretary'},
-            ]
-            for c in default_candidates:
-                db.session.add(Candidate(**c))
-            db.session.commit()
-        if AllowedReg.query.count() == 0:
-            for reg in ['BAECS/25D/U/V9999', 'BAIT/26W/M/R2222', 'BAMA/24D/P/A1111', 'BACS/25D/U/A0001']:
-                db.session.add(AllowedReg(reg_number=reg))
+            db.session.add_all([
+                Candidate(name='Alice', post='Guild'),
+                Candidate(name='Bob', post='Guild'),
+                Candidate(name='Charlie', post='Guild'),
+                Candidate(name='Dave', post='Vice Guild'),
+                Candidate(name='Eve', post='Vice Guild'),
+                Candidate(name='Hank', post='Secretary'),
+                Candidate(name='Ivy', post='Secretary')
+            ])
             db.session.commit()
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",
-            port=int(os.environ.get("PORT", 5000)))
+    init_db()
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
