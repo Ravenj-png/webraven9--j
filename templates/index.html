@@ -4,177 +4,100 @@
 <title>Voting System</title>
 
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* BODY - toned down neon yellow-green */
+body{
+    margin:0;
+    font-family:Arial;
+    /* neon sun gradient - less harsh */
+    background: radial-gradient(circle at top left, #c4ff00, #aaff33, #66ff66, #0b0c10);
+    color:white;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    position:relative;
 }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    min-height: 100vh;
-    background: radial-gradient(circle at 20% 30%, #f4a261, #2c3e50, #1a2a3a);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem 1rem;
-    color: #f0f0f0;
+/* BUTTON - toned neon glow */
+button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background: linear-gradient(135deg, #c4ff00, #aaff33, #66ff66);
+    color:black;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:5px;
+    box-shadow: 0 0 6px #c4ff00, 0 0 12px #aaff33;
+    transition: 0.3s all;
 }
 
-/* Glass morphism with warm overlay */
-.section {
-    width: 90%;
-    max-width: 550px;
-    padding: 1.8rem;
-    margin: 1.5rem 0;
-    background: rgba(30, 30, 40, 0.35);
-    backdrop-filter: blur(12px);
-    border-radius: 24px;
-    border: 1px solid rgba(255, 215, 150, 0.3);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s ease;
+button:hover{
+    opacity:0.85;
+    box-shadow: 0 0 10px #ffff33, 0 0 18px #aaff33;
 }
 
-.section:hover {
-    transform: translateY(-3px);
-    border-color: rgba(244, 162, 97, 0.6);
+/* INPUT - subtle neon glow */
+input{
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border:none;
+    border-radius:8px;
+    background: rgba(0,0,0,0.25);
+    color:white;
+    box-shadow: 0 0 4px #aaff33 inset;
+    transition: 0.2s;
 }
 
-h2, h3 {
-    text-align: center;
-    margin-bottom: 1rem;
-    font-weight: 500;
-    letter-spacing: 1px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+input:focus{
+    box-shadow: 0 0 8px #ffff33 inset;
+    outline:none;
 }
 
-h2 {
-    font-size: 2.2rem;
-    color: #ffdd99;
+/* WhatsApp QR glow */
+#whatsappQR{
+    position:fixed;
+    top:10px;
+    right:10px;
+    width:100px;
+    height:100px;
+    background:white;
+    border-radius:15px;
+    padding:5px;
+    box-shadow: 0 0 8px #c4ff00, 0 0 15px #aaff33;
+    z-index:9999;
 }
-
-h3 {
-    font-size: 1.6rem;
-    color: #ffd966;
-    border-bottom: 2px solid #f4a261;
-    display: inline-block;
-    padding-bottom: 0.3rem;
-}
-
-input, button {
-    width: 100%;
-    padding: 12px 16px;
-    margin: 10px 0;
-    border: none;
-    border-radius: 40px;
-    font-size: 1rem;
-    transition: all 0.2s ease;
-}
-
-input {
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
-    border: 1px solid rgba(255, 215, 150, 0.5);
-    backdrop-filter: blur(4px);
-}
-
-input:focus {
-    outline: none;
-    border-color: #f4a261;
-    background: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 0 8px rgba(244, 162, 97, 0.6);
-}
-
-input::placeholder {
-    color: rgba(255, 240, 200, 0.8);
-}
-
-button {
-    background: linear-gradient(135deg, #f4a261, #2c3e50);
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    border: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-button:hover {
-    background: linear-gradient(135deg, #ffb347, #1e2f3a);
-    transform: scale(1.02);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-}
-
-button:active {
-    transform: scale(0.98);
-}
-
-#voteContent {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    margin-top: 1rem;
-}
-
-#voteContent button {
-    background: linear-gradient(135deg, #3a6b4b, #1e3a3a);
-}
-
-#voteContent button:hover {
-    background: linear-gradient(135deg, #4c7a5a, #2a4a4a);
-}
-
-#results {
-    background: rgba(0,0,0,0.3);
-    border-radius: 20px;
-    padding: 1rem;
-    margin-top: 1rem;
-    font-size: 1rem;
-    line-height: 1.6;
-}
-
-#results h4 {
-    margin-top: 0.8rem;
-    color: #ffd966;
-    border-left: 4px solid #f4a261;
-    padding-left: 12px;
-}
-
-#adminData {
-    margin-top: 1rem;
-    background: rgba(0,0,0,0.2);
-    border-radius: 16px;
-    padding: 1rem;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-    .section {
-        width: 95%;
-        padding: 1.2rem;
-    }
-    h2 { font-size: 1.8rem; }
-    h3 { font-size: 1.3rem; }
+#whatsappQR img:hover{
+    transform: scale(1.05);
+    box-shadow: 0 0 12px #ffff33, 0 0 22px #aaff33;
 }
 </style>
 </head>
 
 <body>
 
-<h2> VOTING SYSTEM </h2>
+<h2>Voting System</h2>
+
+<!-- FLOATING WHATSAPP QR -->
+<div id="whatsappQR">
+  <a href="https://wa.me/2567227707" target="_blank">
+    <img src="https://api.qrserver.com/v1/create-qr-code/?data=https://wa.me/2567227707&size=100x100" alt="WhatsApp QR">
+  </a>
+</div>
 
 <!-- LOGIN -->
 <div class="section">
-<h3> Login</h3>
+<h3>Login</h3>
 <input id="loginReg" placeholder="Reg Number">
 <input id="loginPassword" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
+<button onclick="recoverPassword()">Forgot Password?</button>
 </div>
 
 <!-- REGISTER -->
 <div class="section">
-<h3> Register</h3>
+<h3>Register</h3>
 <input id="regReg" placeholder="Reg Number">
 <input id="regPhone" placeholder="Phone">
 <button onclick="register()">Register</button>
@@ -182,27 +105,28 @@ button:active {
 
 <!-- ADMIN -->
 <div class="section">
-<h3> Admin</h3>
+<h3>Admin</h3>
 <input id="adminPass" type="password" placeholder="Password">
 <button onclick="adminLogin()">Admin Login</button>
 </div>
 
 <!-- VOTING -->
 <div id="voteArea" class="section" style="display:none;">
-<h3>🗳️ Vote</h3>
+<h3>Vote</h3>
 <div id="voteContent"></div>
 </div>
 
 <!-- LIVE RESULTS -->
 <div class="section">
-<h3> Live Results</h3>
-<div id="results">Loading...</div>
+<h3>Live Results 🔥</h3>
+<div id="results">Loading results...</div>
 </div>
 
 <!-- ADMIN PANEL -->
 <div id="adminPanel" class="section" style="display:none;">
-<h3> Admin Panel</h3>
+<h3>Admin Panel</h3>
 <button onclick="resetVotes()">Reset Votes</button>
+<button onclick="loadStudents()">Load Student Details</button>
 <div id="adminData"></div>
 </div>
 
@@ -211,25 +135,26 @@ const API = "https://webraven9-j.onrender.com";
 
 // ---------- REGISTER ----------
 async function register(){
-    let reg = document.getElementById("regReg").value;
-    let phone = document.getElementById("regPhone").value;
+    let reg = document.getElementById("regReg").value.trim();
+    let phone = document.getElementById("regPhone").value.trim();
+    if(!reg || !phone) return alert("Enter all registration details");
 
     let res = await fetch(API+"/register",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({reg_number:reg, phone:phone})
     });
-
     let data = await res.json();
     if(data.password){
-        alert("Your password: "+data.password);
+        alert("Password: "+data.password);
     }else alert(data.error);
 }
 
 // ---------- LOGIN ----------
 async function login(){
-    let reg = document.getElementById("loginReg").value;
-    let pass = document.getElementById("loginPassword").value;
+    let reg = document.getElementById("loginReg").value.trim();
+    let pass = document.getElementById("loginPassword").value.trim();
+    if(!reg || !pass) return alert("Enter registration and password");
 
     let res = await fetch(API+"/login",{
         method:"POST",
@@ -237,14 +162,31 @@ async function login(){
         credentials:"include",
         body:JSON.stringify({reg_number:reg, password:pass})
     });
-
     let data = await res.json();
-
     if(data.success){
         alert("Logged in");
         document.getElementById("voteArea").style.display="block";
         loadVoting();
+        loadResults(); // start results live update
     }else alert(data.error);
+}
+
+// ---------- RECOVER PASSWORD ----------
+async function recoverPassword(){
+    let reg = document.getElementById("loginReg").value.trim();
+    if(!reg) return alert("Enter your registration number");
+
+    let res = await fetch(API+"/recover",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({reg_number:reg})
+    });
+    let data = await res.json();
+    if(data.password){
+        alert("Your password: " + data.password);
+    } else {
+        alert(data.error || "Unable to recover password");
+    }
 }
 
 // ---------- LOAD VOTING ----------
@@ -254,8 +196,7 @@ let current = 0;
 async function loadVoting(){
     let res = await fetch(API+"/voting_data",{credentials:"include"});
     let data = await res.json();
-
-    posts = data.posts_order;
+    posts = data.posts_order || [];
     current = 0;
     loadPost();
 }
@@ -264,16 +205,12 @@ async function loadPost(){
     if(current >= posts.length) return;
 
     let post = posts[current];
-
-    let res = await fetch(API+"/candidates?post="+post,{credentials:"include"});
+    let res = await fetch(API+"/candidates?post="+encodeURIComponent(post),{credentials:"include"});
     let data = await res.json();
-
     let html = "<h4>"+post+"</h4>";
-
-    data.candidates.forEach((c,i)=>{
+    (data.candidates||[]).forEach((c,i)=>{
         html += `<button onclick="vote('${post}',${i})">${c.name}</button>`;
     });
-
     document.getElementById("voteContent").innerHTML = html;
 }
 
@@ -285,12 +222,11 @@ async function vote(post,i){
         credentials:"include",
         body:JSON.stringify({post:post, candidate_index:i})
     });
-
     let data = await res.json();
-
     if(data.success){
         current++;
         loadPost();
+        loadResults(); // refresh results immediately
     }else alert(data.error);
 }
 
@@ -298,24 +234,23 @@ async function vote(post,i){
 async function loadResults(){
     let res = await fetch(API+"/results");
     let data = await res.json();
-
     let html = "";
-
     for(let post in data){
         html += `<h4>${post}</h4>`;
-        data[post].forEach(c=>{
+        (data[post]||[]).forEach(c=>{
             html += `${c.name}: ${c.votes}<br>`;
         });
     }
-
     document.getElementById("results").innerHTML = html;
 }
 
-loadResults();
+// 🔥 AUTO UPDATE RESULTS EVERY 3 SECONDS
+setInterval(loadResults, 3000);
 
 // ---------- ADMIN ----------
 async function adminLogin(){
-    let pass = document.getElementById("adminPass").value;
+    let pass = document.getElementById("adminPass").value.trim();
+    if(!pass) return alert("Enter admin password");
 
     let res = await fetch(API+"/admin/login",{
         method:"POST",
@@ -323,9 +258,7 @@ async function adminLogin(){
         credentials:"include",
         body:JSON.stringify({password:pass})
     });
-
     let data = await res.json();
-
     if(data.role){
         document.getElementById("adminPanel").style.display="block";
     }else alert(data.error);
@@ -336,10 +269,33 @@ async function resetVotes(){
         method:"POST",
         credentials:"include"
     });
-
     let data = await res.json();
-
     if(data.success) alert("Votes reset");
+}
+
+// ---------- LOAD STUDENT DETAILS ----------
+async function loadStudents() {
+    let res = await fetch(API + "/admin/students", { credentials: "include" });
+    let data = await res.json();
+    if (!data.students) {
+        document.getElementById("adminData").innerHTML = "No student data found";
+        return;
+    }
+    let html = `<table style="width:100%; border-collapse: collapse; color:white;">
+                  <tr>
+                    <th>Reg Number</th>
+                    <th>Phone</th>
+                    <th>Password</th>
+                  </tr>`;
+    data.students.forEach(s => {
+        html += `<tr>
+                   <td>${s.reg_number}</td>
+                   <td>${s.phone}</td>
+                   <td>${s.password}</td>
+                 </tr>`;
+    });
+    html += "</table>";
+    document.getElementById("adminData").innerHTML = html;
 }
 </script>
 
