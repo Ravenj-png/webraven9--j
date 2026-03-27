@@ -33,8 +33,8 @@ CORS(app,
 # ---------------- VALID REG NUMBERS ----------------
 VALID_REG_NUMBERS = {
     "U/BSCS/001",
-    "U/BSCS/002",
-    "U/BSCS/003"
+    "BACS/25D/U/A0002",
+    "BACS/25D/U/A0001"
 }
 
 def valid_reg(reg):
