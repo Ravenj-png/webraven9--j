@@ -31,13 +31,14 @@ CORS(app,
      supports_credentials=True,
      origins=["https://webraven9-j.onrender.com"])
 
-# ------------------ Validation ------------------
-# Regex for registration number: BACS/25D/U/A0000 (uppercase, with slashes)
-# Pattern: BACS/ followed by two digits, one letter, slash, one letter, slash, A, then four digits
-REG_PATTERN = re.compile(r"^BACS/\d{2}[A-Z]/[A-Z]/A\d{4}$")
-
-def valid_reg_number(reg):
-    return bool(REG_PATTERN.match(reg))
+# ------------------ Allowed Registration Numbers ------------------
+# ⚠️ EDIT THIS SET TO ADD THE REGISTRATION NUMBERS YOU WANT TO ALLOW ⚠️
+ALLOWED_REGS = {
+    "BACS/25D/U/A0001",
+    "BACS/25D/U/A0002",
+    "BACS/25D/U/A0003",
+    # Add more numbers here, e.g., "BACS/25D/U/A1234"
+}
 
 # ------------------ Models ------------------
 class Student(db.Model):
@@ -92,9 +93,9 @@ def register():
         if not reg or not phone:
             return jsonify({'error': 'Missing fields'}), 400
 
-        # Validate format
-        if not valid_reg_number(reg):
-            return jsonify({'error': 'Invalid registration number. Must be in format BACS/25D/U/A0000'}), 400
+        # Check if reg number is in the allowed set
+        if reg not in ALLOWED_REGS:
+            return jsonify({'error': 'Invalid registration number. Not on the allowed list.'}), 400
 
         # Check if already registered
         if Student.query.filter_by(reg_number=reg).first():
@@ -137,7 +138,7 @@ def login():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ---------- Voting ----------
+# ---------- Voting Data ----------
 @app.route('/voting_data')
 @login_required
 def voting_data():
@@ -158,12 +159,20 @@ def vote():
     post = data.get("post")
     index = data.get("candidate_index")
 
+    # Get the logged‑in student
+    student = Student.query.get(session['user_id'])
+
+    # Prevent double voting
+    if student.has_voted:
+        return jsonify({'error': 'You have already voted'}), 403
+
     candidates = Candidate.query.filter_by(post=post).all()
     if index >= len(candidates):
         return jsonify({'error': 'Invalid candidate'}), 400
 
     candidate = candidates[index]
     candidate.votes += 1
+    student.has_voted = True
     db.session.commit()
     return jsonify({'success': True})
 
@@ -202,8 +211,12 @@ def students():
 @app.route('/admin/reset', methods=['POST'])
 @admin_required
 def reset():
+    # Reset all candidate votes
     for c in Candidate.query.all():
         c.votes = 0
+    # Reset all student voting flags (optional, but good for a fresh election)
+    for s in Student.query.all():
+        s.has_voted = False
     db.session.commit()
     return jsonify({'success': True})
 
@@ -216,7 +229,7 @@ def internal_error(e):
 with app.app_context():
     db.create_all()
     if Candidate.query.count() == 0:
-        # Add default candidates (adjust as needed)
+        # Add default candidates (you can change these)
         db.session.add_all([
             Candidate(name="Alice", post="President"),
             Candidate(name="Bob", post="President"),
