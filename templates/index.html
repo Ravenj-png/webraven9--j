@@ -1,313 +1,262 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Online Voting System</title>
-<meta http-equiv="refresh" content="180">
-<style>
-body{
-    margin:0;
-    padding:0;
-    font-family:Arial,sans-serif;
-    min-height:100vh;
-    overflow-x:hidden;
-    background:#111;
-    color:white;
-}
-#flameCanvas{
-    position:fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    z-index:-1;
-}
-.box{
-    margin:50px auto;
-    width:90%;
-    max-width:600px;
-    padding:20px;
-    background: rgba(255,255,255,0.1);
-    border-radius:15px;
-    border:3px solid;
-    border-image: linear-gradient(45deg, #ff0000, #ff0, #0ff, #f0f, #ff0000) 1;
-    backdrop-filter: blur(15px);
-    box-shadow: 0 0 20px #ff0, 0 0 40px #0ff, 0 0 60px #f0f;
-}
-input, button{
-    width:90%;
-    padding:12px;
-    margin:10px 0;
-    border:none;
-    border-radius:10px;
-    font-weight:bold;
-    background: rgba(255,255,255,0.2);
-    color:white;
-    box-shadow:0 0 10px #fff inset;
-}
-button{
-    cursor:pointer;
-    background: linear-gradient(45deg, #ff0000, #ff0, #0ff, #f0f, #ff0000);
-    color:black;
-}
-#countdown{color:#ff0; font-weight:bold;}
-#adminContact{position:fixed; top:10px; right:10px;}
-#whatsapp{
-    position:fixed; bottom:20px; right:20px;
-    width:60px; height:60px;
-    background:#25D366;
-    border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    font-size:30px; color:white;
-}
-.contestant{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    border:1px solid #ff0;
-    padding:10px;
-    margin:10px 0;
-    border-radius:10px;
-}
-.contestant img{width:60px;height:60px;border-radius:50%;}
-table{border-collapse: collapse; width:100%; margin-bottom:15px;}
-th, td{border:1px solid #ff0; padding:8px; text-align:left;}
-th{background: rgba(255,255,255,0.1);}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voting System</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
+        .section { background: #f4f4f4; padding: 1rem; margin: 1rem 0; border-radius: 8px; }
+        input, button { margin: 0.5rem 0; padding: 0.5rem; width: 100%; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .error { color: red; }
+        .success { color: green; }
+        pre { background: #eee; padding: 0.5rem; overflow-x: auto; }
+    </style>
 </head>
 <body>
-<canvas id="flameCanvas"></canvas>
-<p id="adminContact">Admin: +256741333544</p>
-<p id="countdown"></p>
+    <h1>Voting System</h1>
 
-<!-- LOGIN -->
-<div id="login" class="box">
-<h2>Login</h2>
-<input id="loginReg" placeholder="Registration Number">
-<input id="loginPassword" type="password" placeholder="Password">
-<button onclick="login()">login</button>
-<p onclick="showRegister()" style="cursor:pointer;color:#0ff;">Register</p>
-<p onclick="showForgot()" style="cursor:pointer;color:#ff0;">Forgot Password?</p>
-<p onclick="showAdminLogin()" style="cursor:pointer;color:#ff0;">Admin Login</p>
-</div>
+    <!-- Student Login -->
+    <div class="section">
+        <h2>Student Login</h2>
+        <input type="text" id="loginReg" placeholder="Registration Number (e.g., U/BSCS/001)">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <div id="loginMessage"></div>
+    </div>
 
-<!-- REGISTER -->
-<div id="register" class="box" style="display:none;">
-<h2>Register</h2>
-<input id="regNumber" placeholder="Registration Number">
-<input id="phone" placeholder="Phone">
-<button onclick="register()">Register</button>
-<p onclick="showLogin()" style="cursor:pointer;color:#0ff;">Back to Login</p>
-</div>
+    <!-- Student Registration -->
+    <div class="section">
+        <h2>Student Registration</h2>
+        <input type="text" id="regReg" placeholder="Registration Number (U/BSCS/001-003)">
+        <input type="tel" id="regPhone" placeholder="Phone Number">
+        <button onclick="register()">Register</button>
+        <div id="regMessage"></div>
+    </div>
 
-<!-- FORGOT PASSWORD -->
-<div id="forgot" class="box" style="display:none;">
-<h2>Recover Password</h2>
-<input id="forgotPhone" placeholder="Phone Number">
-<button onclick="recover()">Recover</button>
-<p onclick="showLogin()" style="cursor:pointer;color:#0ff;">Back to Login</p>
-</div>
+    <!-- Admin Login -->
+    <div class="section">
+        <h2>Admin Login</h2>
+        <input type="password" id="adminPassword" placeholder="Admin Password">
+        <button onclick="adminLogin()">Admin Login</button>
+        <div id="adminMessage"></div>
+    </div>
 
-<!-- VOTING -->
-<div id="vote" class="box" style="display:none;">
-<h2>Voting</h2>
-<div id="voteContent"></div>
-<h3>Results</h3>
-<div id="results"></div>
-</div>
+    <!-- Voting Area (visible after student login) -->
+    <div id="votingArea" style="display: none;" class="section">
+        <h2>Voting</h2>
+        <div id="votingContent"></div>
+    </div>
 
-<!-- ADMIN LOGIN -->
-<div id="adminlogin" class="box" style="display:none;">
-<h2>Admin Login</h2>
-<input id="adminPass" type="password" placeholder="Admin Password">
-<button onclick="adminlogin()">Login</button>
-<p onclick="showLogin()" style="cursor:pointer;color:#0ff;">Back</p>
-</div>
+    <!-- Admin Area (visible after admin login) -->
+    <div id="adminArea" style="display: none;" class="section">
+        <h2>Admin Panel</h2>
+        <button onclick="listStudents()">List Students</button>
+        <button onclick="resetVotes()">Reset Votes</button>
+        <div id="adminData"></div>
+    </div>
 
-<!-- ADMIN PANEL -->
-<div id="adminPanel" class="box" style="display:none;">
-<h2>Admin Panel</h2>
-<button onclick="loadStudents()">View Students</button>
-<button onclick="loadVotes()">View Votes</button>
-<button onclick="resetVotes()">Reset Votes</button>
-<div id="adminContent"></div>
-<p onclick="showLogin()" style="cursor:pointer;color:#0ff;">Logout</p>
-</div>
-
-<!-- WHATSAPP / CALL -->
-<a href="https://wa.me/256741227707" target="_blank" id="whatsapp">💬</a>
-<a href="tel:+256741333544" style="position:fixed;bottom:20px;left:20px;font-size:25px;color:#0ff;">📞</a>
-
-<script>
-const API = "https://webraven9-j.onrender.com"; // your backend
-
-function showLogin(){ document.getElementById("login").style.display="block"; document.getElementById("register").style.display="none"; document.getElementById("forgot").style.display="none"; document.getElementById("vote").style.display="none"; document.getElementById("adminLogin").style.display="none"; document.getElementById("adminPanel").style.display="none";}
-function showRegister(){ document.getElementById("login").style.display="none"; document.getElementById("register").style.display="block";}
-function showForgot(){ document.getElementById("login").style.display="none"; document.getElementById("forgot").style.display="block";}
-function showVote(){ document.getElementById("login").style.display="none"; document.getElementById("vote").style.display="block";}
-function showAdminLogin(){ document.getElementById("login").style.display="none"; document.getElementById("adminLogin").style.display="block";}
-function showAdminPanel(){ document.getElementById("adminLogin").style.display="none"; document.getElementById("adminPanel").style.display="block";}
-
-// ---------- REGISTER ----------
-function register(){
-    let reg = document.getElementById("regNumber").value;
-    let phone = document.getElementById("phone").value;
-    fetch(API + "/register",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        credentials: "include",
-        body: JSON.stringify({reg_number: reg, phone: phone})
-    }).then(res=>res.json()).then(data=>{
-        if(data.password){ alert("Your password: "+data.password); showLogin();}
-        else alert(data.error);
-    });
-}
-    
-function login() {
-    let reg = document.getElementById("loginReg").value;
-    let password = document.getElementById("loginPassword").value;
-
-    fetch(API + "/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",        // required for session cookies
-        body: JSON.stringify({
-            reg_number: reg,
-            password: password
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            alert("Login successful!");
-            // Redirect or update UI
-        } else {
-            alert(data.error || "Login failed");
+    <script>
+        // Helper to show messages
+        function showMessage(elementId, text, isError = true) {
+            const el = document.getElementById(elementId);
+            el.innerHTML = `<p class="${isError ? 'error' : 'success'}">${text}</p>`;
+            setTimeout(() => el.innerHTML = '', 5000);
         }
-    })
-    .catch(err => {
-        console.error("Login error:", err);
-        alert("An error occurred. Check console.");
-    });
-}
 
-// ---------- FORGOT PASSWORD ----------
-function recover(){
-    let phone = document.getElementById("forgotPhone").value;
-    window.open(`https://wa.me/256741227707?text=Hi%20I%20forgot%20my%20password%20for%20${phone}`, "_blank");
-}
+        // ---------- Student Login ----------
+        async function login() {
+            const reg = document.getElementById('loginReg').value.trim();
+            const password = document.getElementById('loginPassword').value;
 
-// ---------- VOTING ----------
-let postsOrder = [];
-let currentPost = 0;
+            if (!reg || !password) {
+                showMessage('loginMessage', 'Please fill both fields');
+                return;
+            }
 
-function loadVoting(){
-    fetch(API + "/voting_data",{credentials:"include"})
-    .then(res=>res.json())
-    .then(data=>{
-        postsOrder = data.posts_order;
-        currentPost=0;
-        loadPost();
-    });
-}
-
-function loadPost(){
-    if(currentPost>=postsOrder.length) return loadResults();
-    let post = postsOrder[currentPost];
-    fetch(API + "/candidates?post="+post,{credentials:"include"})
-    .then(res=>res.json())
-    .then(data=>{
-        let html="<h3>"+post+"</h3>";
-        data.candidates.forEach((c,i)=>{
-            html+=`<div class="contestant"><div>${c.name}</div><button onclick="vote('${post}',${i})">Vote</button></div>`;
-        });
-        document.getElementById("voteContent").innerHTML=html;
-    });
-}
-
-function vote(post,index){
-    fetch(API + "/vote",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        credentials:"include",
-        body: JSON.stringify({post:post,candidate_index:index})
-    }).then(res=>res.json()).then(data=>{
-        if(data.success){ currentPost++; loadPost();}
-        else alert(data.error);
-    });
-}
-
-// ---------- RESULTS ----------
-function loadResults(){
-    fetch(API + "/results",{credentials:"include"})
-    .then(res=>res.json())
-    .then(data=>{
-        if(data.error){ document.getElementById('results').innerHTML="<p>Voting still in progress</p>"; return;}
-        let html='';
-        for(let post in data){
-            html+=`<h3>${post}</h3><table><tr><th>Candidate</th><th>Votes</th></tr>`;
-            let maxVotes=-1, winner='';
-            data[post].forEach(c=>{
-                html+=`<tr><td>${c.name}</td><td>${c.votes}</td></tr>`;
-                if(c.votes>maxVotes){ maxVotes=c.votes; winner=c.name;}
-            });
-            html+=`</table><p>Winner: <b>${winner}</b></p>`;
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ reg_number: reg, password: password })
+                });
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    showMessage('loginMessage', 'Login successful!', false);
+                    document.getElementById('votingArea').style.display = 'block';
+                    loadVotingData();
+                } else {
+                    showMessage('loginMessage', data.error || 'Login failed');
+                }
+            } catch (err) {
+                showMessage('loginMessage', 'Network error: ' + err.message);
+            }
         }
-        document.getElementById('results').innerHTML=html;
-    });
-}
 
-// ---------- ADMIN LOGIN ----------
-function adminLogin(){
-    let password=document.getElementById("adminPass").value;
-    fetch(API + "/admin/login",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        credentials:"include",
-        body:JSON.stringify({password:password})
-    }).then(res=>res.json())
-    .then(data=>{
-        if(data.role){ alert("Logged in as "+data.role); showAdminPanel();}
-        else alert(data.error);
-    });
-}
+        // ---------- Student Registration ----------
+        async function register() {
+            const reg = document.getElementById('regReg').value.trim().toUpperCase();
+            const phone = document.getElementById('regPhone').value.trim();
 
-// ---------- ADMIN PANEL ----------
-function loadStudents(){
-    fetch(API + "/admin/students",{credentials:"include"})
-    .then(res=>res.json())
-    .then(data=>{
-        let html="<h3>Students</h3><table><tr><th>Reg Number</th><th>Voted</th></tr>";
-        data.forEach(s=>{
-            html+=`<tr><td>${s.reg_number}</td><td>${s.has_voted}</td></tr>`;
-        });
-        html+="</table>";
-        document.getElementById("adminContent").innerHTML=html;
-    });
-}
+            if (!reg || !phone) {
+                showMessage('regMessage', 'Please fill both fields');
+                return;
+            }
 
-function loadVotes(){
-    fetch(API + "/admin/votes",{credentials:"include"})
-    .then(res=>res.json())
-    .then(data=>{
-        let html="<h3>Votes</h3>";
-        for(let post in data){
-            html+=`<h4>${post}</h4><table><tr><th>Candidate</th><th>Votes</th></tr>`;
-            data[post].forEach(c=>{
-                html+=`<tr><td>${c.name}</td><td>${c.votes}</td></tr>`;
-            });
-            html+="</table>";
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ reg_number: reg, phone: phone })
+                });
+                const data = await response.json();
+                if (response.ok && data.password) {
+                    showMessage('regMessage', `Registration successful! Your password is: ${data.password}`, false);
+                    document.getElementById('regReg').value = '';
+                    document.getElementById('regPhone').value = '';
+                } else {
+                    showMessage('regMessage', data.error || 'Registration failed');
+                }
+            } catch (err) {
+                showMessage('regMessage', 'Network error: ' + err.message);
+            }
         }
-        document.getElementById("adminContent").innerHTML=html;
-    });
-}
 
-function resetVotes(){
-    if(!confirm("Are you sure you want to reset all votes?")) return;
-    fetch(API + "/admin/reset",{method:"POST",credentials:"include"})
-    .then(res=>res.json())
-    .then(data=>{
-        if(data.success){ alert("Votes reset successfully"); loadVotes();}
-        else alert(data.error);
-    });
-}
-</script>
+        // ---------- Load voting data after login ----------
+        async function loadVotingData() {
+            try {
+                const response = await fetch('/voting_data', {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                if (response.ok && data.posts_order) {
+                    displayVotingOptions(data.posts_order);
+                } else {
+                    document.getElementById('votingContent').innerHTML = '<p>Failed to load voting data.</p>';
+                }
+            } catch (err) {
+                document.getElementById('votingContent').innerHTML = '<p>Error loading data.</p>';
+            }
+        }
+
+        async function displayVotingOptions(posts) {
+            let html = '<h3>Select a post to vote:</h3><ul>';
+            for (let post of posts) {
+                html += `<li><a href="#" onclick="loadCandidates('${post}'); return false;">${post}</a></li>`;
+            }
+            html += '</ul><div id="candidatesList"></div>';
+            document.getElementById('votingContent').innerHTML = html;
+        }
+
+        async function loadCandidates(post) {
+            try {
+                const response = await fetch(`/candidates?post=${encodeURIComponent(post)}`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                if (response.ok && data.candidates) {
+                    let html = `<h4>Candidates for ${post}:</h4>`;
+                    data.candidates.forEach((c, idx) => {
+                        html += `<button onclick="vote('${post}', ${idx})">Vote for ${c.name}</button><br>`;
+                    });
+                    document.getElementById('candidatesList').innerHTML = html;
+                } else {
+                    document.getElementById('candidatesList').innerHTML = '<p>No candidates found.</p>';
+                }
+            } catch (err) {
+                document.getElementById('candidatesList').innerHTML = '<p>Error loading candidates.</p>';
+            }
+        }
+
+        async function vote(post, candidateIndex) {
+            try {
+                const response = await fetch('/vote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ post: post, candidate_index: candidateIndex })
+                });
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    alert('Vote recorded!');
+                    document.getElementById('candidatesList').innerHTML = '';
+                } else {
+                    alert(data.error || 'Vote failed');
+                }
+            } catch (err) {
+                alert('Network error');
+            }
+        }
+
+        // ---------- Admin Login ----------
+        async function adminLogin() {
+            const password = document.getElementById('adminPassword').value;
+            if (!password) {
+                showMessage('adminMessage', 'Enter password');
+                return;
+            }
+            try {
+                const response = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ password: password })
+                });
+                const data = await response.json();
+                if (response.ok && data.role) {
+                    showMessage('adminMessage', `Logged in as ${data.role}`, false);
+                    document.getElementById('adminArea').style.display = 'block';
+                } else {
+                    showMessage('adminMessage', data.error || 'Login failed');
+                }
+            } catch (err) {
+                showMessage('adminMessage', 'Network error');
+            }
+        }
+
+        async function listStudents() {
+            try {
+                const response = await fetch('/admin/students', {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    let html = '<h3>Students</h3><ul>';
+                    data.forEach(s => {
+                        html += `<li>${s.reg_number} - Voted: ${s.has_voted}</li>`;
+                    });
+                    html += '</ul>';
+                    document.getElementById('adminData').innerHTML = html;
+                } else {
+                    document.getElementById('adminData').innerHTML = '<p>Failed to load students.</p>';
+                }
+            } catch (err) {
+                document.getElementById('adminData').innerHTML = '<p>Error.</p>';
+            }
+        }
+
+        async function resetVotes() {
+            if (!confirm('Reset all votes? This cannot be undone.')) return;
+            try {
+                const response = await fetch('/admin/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    alert('Votes reset!');
+                } else {
+                    alert('Reset failed');
+                }
+            } catch (err) {
+                alert('Network error');
+            }
+        }
+    </script>
 </body>
 </html>
