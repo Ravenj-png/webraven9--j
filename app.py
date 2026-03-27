@@ -10,17 +10,15 @@ from datetime import datetime
 from flask_session import Session
 
 app = Flask(__name__)
-CORS(app,
-    supports_credentials=True,
-    origins=['https://webraven9-j.onrender.com'])
 
+# ------------------ Configuration ------------------
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key')
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_COOKIE_SAMESITE'] = None
 app.config['SESSION_COOKIE_SECURE'] = False
 Session(app)
 
-
+# Database
 db_url = os.environ.get('DATABASE_URL')
 if db_url:
     if db_url.startswith("postgres://"):
@@ -32,6 +30,13 @@ else:
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+# ------------------ CORS ------------------
+# Use your exact Render origin (no trailing slash)
+CORS(app,
+     supports_credentials=True,
+     origins=['https://webraven9-j.onrender.com'])
+
+# ------------------ Models ------------------
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     reg_number = db.Column(db.String(20), unique=True, nullable=False)
@@ -48,6 +53,14 @@ class Candidate(db.Model):
     img = db.Column(db.String(200), default='https://via.placeholder.com/60')
     votes = db.Column(db.Integer, default=0)
 
+# ------------------ Helper to accept both JSON and form data ------------------
+def get_request_data():
+    if request.is_json:
+        return request.get_json()
+    else:
+        return request.form.to_dict()   # fixed typo
+
+# ------------------ Decorators ------------------
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -68,16 +81,10 @@ def admin_required(role=None):
         return decorated_function
     return decorator
 
-def get_request_data():
-    if request.is_json:
-        return request.get_json()
-    else:
-        return request.form.to.dict()
-
+# ------------------ Routes ------------------
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -103,15 +110,6 @@ def register():
     db.session.commit()
 
     return jsonify({'password': password}), 200
-
-@app.route('/<path:path>', methods=['OPTIONS'])
-def handle_options(path):
-    return '', 200, {
-        'Access-Control-Allow-Origin': 'https://webraven9-j-i.onrender.com',
-        'Access-Control-Allow-Credentials': 'true',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-    }
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -185,7 +183,8 @@ ADMIN_PASSWORDS = ["hunter", "ravenR"]
 
 @app.route('/admin/login', methods=['POST'])
 def admin_login():
-    pwd = request.get_json().get('password')
+    data = get_request_data()
+    pwd = data.get('password')
     if pwd in ADMIN_PASSWORDS:
         session['admin_role'] = pwd
         return jsonify({'role': pwd})
@@ -215,7 +214,8 @@ def students():
 @app.route('/admin/reset_password', methods=['POST'])
 @admin_required(role='ravenR')
 def reset_password():
-    reg = request.get_json().get('reg_number')
+    data = get_request_data()
+    reg = data.get('reg_number')
     student = Student.query.filter_by(reg_number=reg).first()
 
     if not student:
@@ -227,21 +227,23 @@ def reset_password():
 
     return jsonify({'new_password': new_pass})
 
-def init_db():
-    with app.app_context():
-        db.create_all()
-        if Candidate.query.count() == 0:
-            db.session.add_all([
-                Candidate(name='Alice', post='Guild'),
-                Candidate(name='Bob', post='Guild'),
-                Candidate(name='Charlie', post='Guild'),
-                Candidate(name='Dave', post='Vice Guild'),
-                Candidate(name='Eve', post='Vice Guild'),
-                Candidate(name='Hank', post='Secretary'),
-                Candidate(name='Ivy', post='Secretary')
-            ])
-            db.session.commit()
+# ------------------ Database initialization ------------------
+# This runs when the app starts, whether with gunicorn or flask run
+with app.app_context():
+    db.create_all()
+    if Candidate.query.count() == 0:
+        default_candidates = [
+            Candidate(name='Alice', post='Guild'),
+            Candidate(name='Bob', post='Guild'),
+            Candidate(name='Charlie', post='Guild'),
+            Candidate(name='Dave', post='Vice Guild'),
+            Candidate(name='Eve', post='Vice Guild'),
+            Candidate(name='Hank', post='Secretary'),
+            Candidate(name='Ivy', post='Secretary')
+        ]
+        db.session.add_all(default_candidates)
+        db.session.commit()
 
+# ------------------ Run (for local development) ------------------
 if __name__ == '__main__':
-    init_db()
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
