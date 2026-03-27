@@ -12,7 +12,7 @@ from flask_session import Session
 app = Flask(__name__)
 CORS(app,
     supports_credentials=True,
-    origins=['https://webraven9-j.onrender.com/'])
+    origins=['https://webraven9-j.onrender.com'])
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key')
 app.config['SESSION_TYPE'] = 'filesystem'
