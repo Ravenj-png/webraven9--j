@@ -2,21 +2,18 @@
 <html>
 <head>
 <title>Voting System</title>
-
 <style>
 body{
     margin:0;
     font-family:Arial;
-    /* Neon sun background toned green-blue */
-    background: radial-gradient(circle at top left, #aaff33, #66ffcc, #0b0c10);
+    background: radial-gradient(circle at top left, #33ccff, #66ffcc, #0b0c10);
     color:white;
     display:flex;
     flex-direction:column;
     align-items:center;
-    position:relative;
 }
 
-/* FLOATING WHATSAPP QR */
+/* WHATSAPP QR */
 #whatsappQR{
     position:fixed;
     top:10px;
@@ -26,19 +23,13 @@ body{
     background:white;
     border-radius:15px;
     padding:5px;
-    box-shadow: 0 0 6px #66ffcc, 0 0 12px #33ccff;
+    box-shadow: 0 0 6px #33ccff, 0 0 12px #66ffcc;
     z-index:9999;
 }
-
 #whatsappQR img{
     width:100%;
     height:100%;
     border-radius:10px;
-    transition: 0.3s;
-}
-#whatsappQR img:hover{
-    transform: scale(1.05);
-    box-shadow: 0 0 12px #33ccff, 0 0 22px #66ffcc;
 }
 
 /* GLASS BOX */
@@ -51,10 +42,7 @@ body{
     border-radius:15px;
     border:1px solid rgba(0,0,0,0.4);
     backdrop-filter: blur(12px);
-    box-shadow: 0 0 12px rgba(0,255,255,0.25);
 }
-
-/* INPUT */
 input{
     width:100%;
     padding:12px;
@@ -63,33 +51,23 @@ input{
     border-radius:8px;
     background: rgba(0,0,0,0.25);
     color:white;
-    box-shadow: 0 0 4px #33ccff inset;
-    transition: 0.2s;
 }
-input:focus{
-    box-shadow: 0 0 8px #66ffcc inset;
-    outline:none;
-}
-
-/* BUTTON */
 button{
     width:100%;
     padding:12px;
     border:none;
     border-radius:8px;
-    background: linear-gradient(135deg, #aaff33, #33ccff);
+    background: linear-gradient(135deg, #66ffcc, #33ccff);
     color:black;
     font-weight:bold;
     cursor:pointer;
     margin-top:5px;
-    box-shadow: 0 0 6px #33ccff, 0 0 12px #66ffcc;
-    transition: 0.3s all;
 }
-button:hover{
-    opacity:0.85;
-    box-shadow: 0 0 10px #33ccff, 0 0 20px #66ffcc;
+button:hover{opacity:0.85;}
+button:disabled{
+    opacity:0.4;
+    cursor:not-allowed;
 }
-
 h2{text-align:center;}
 table th, table td{
     border:1px solid white;
@@ -99,12 +77,10 @@ table th, table td{
 a{color:yellow;}
 </style>
 </head>
-
 <body>
 
 <h2>Voting System</h2>
 
-<!-- FLOATING WHATSAPP QR -->
 <div id="whatsappQR">
   <a href="https://wa.me/2567227707" target="_blank">
     <img src="https://api.qrserver.com/v1/create-qr-code/?data=https://wa.me/2567227707&size=100x100" alt="WhatsApp QR">
@@ -128,37 +104,30 @@ a{color:yellow;}
 <button onclick="register()">Register</button>
 </div>
 
-<!-- ADMIN -->
-<div class="section">
-<h3>Admin</h3>
-<input id="adminPass" type="password" placeholder="Password">
-<button onclick="adminLogin()">Admin Login</button>
-</div>
-
 <!-- VOTING -->
 <div id="voteArea" class="section" style="display:none;">
 <h3>Vote</h3>
 <div id="voteContent"></div>
 </div>
 
-<!-- LIVE RESULTS -->
-<div class="section">
+<!-- RESULTS -->
+<div id="resultsSection" class="section" style="display:none;">
 <h3>Live Results 🔥</h3>
-<div id="results">Loading results...</div>
+<div id="results"></div>
 </div>
 
-<!-- ADMIN PANEL -->
+<!-- ADMIN -->
 <div id="adminPanel" class="section" style="display:none;">
 <h3>Admin Panel</h3>
 <button onclick="resetVotes()">Reset Votes</button>
-<button onclick="loadStudents()">Load Student Details</button>
+<button onclick="loadAdminData()">Load Data</button>
 <div id="adminData"></div>
 </div>
 
 <script>
 const API = "https://webraven9-j.onrender.com";
 
-// ---------- REGISTER ----------
+// REGISTER
 async function register(){
     let reg = document.getElementById("regReg").value.trim();
     let phone = document.getElementById("regPhone").value.trim();
@@ -170,12 +139,11 @@ async function register(){
         body:JSON.stringify({reg_number:reg, phone:phone})
     });
     let data = await res.json();
-    if(data.password){
-        alert("Password: "+data.password);
-    }else alert(data.error);
+    if(data.password) alert("Password: "+data.password);
+    else alert(data.error);
 }
 
-// ---------- LOGIN ----------
+// LOGIN
 async function login(){
     let reg = document.getElementById("loginReg").value.trim();
     let pass = document.getElementById("loginPassword").value.trim();
@@ -188,15 +156,18 @@ async function login(){
         body:JSON.stringify({reg_number:reg, password:pass})
     });
     let data = await res.json();
+
     if(data.success){
         alert("Logged in");
         document.getElementById("voteArea").style.display="block";
-        loadVoting();
-        loadResults(); // start live results update
-    }else alert(data.error);
+        await loadVoting();
+    } else if(data.role && (data.role=="ravenR" || data.role=="hunter")){
+        document.getElementById("adminPanel").style.display="block";
+        alert("Admin logged in as "+data.role);
+    } else alert(data.error);
 }
 
-// ---------- RECOVER PASSWORD ----------
+// RECOVER PASSWORD
 async function recoverPassword(){
     let reg = document.getElementById("loginReg").value.trim();
     if(!reg) return alert("Enter your registration number");
@@ -207,38 +178,36 @@ async function recoverPassword(){
         body:JSON.stringify({reg_number:reg})
     });
     let data = await res.json();
-    if(data.password){
-        alert("Your password: " + data.password);
-    } else {
-        alert(data.error || "Unable to recover password");
-    }
+    if(data.password) alert("Your password: " + data.password);
+    else alert(data.error || "Unable to recover password");
 }
 
-// ---------- LOAD VOTING ----------
-let posts = [];
-let current = 0;
-
+// LOAD VOTING
+let userVotes = {}; // Track votes per post
 async function loadVoting(){
     let res = await fetch(API+"/voting_data",{credentials:"include"});
     let data = await res.json();
-    posts = data.posts_order || [];
-    current = 0;
-    loadPost();
-}
+    let posts = data.posts_order || [];
+    if(posts.length===0){
+        document.getElementById("voteContent").innerHTML = "No posts available for voting";
+        return;
+    }
 
-async function loadPost(){
-    if(current >= posts.length) return;
-    let post = posts[current];
-    let res = await fetch(API+"/candidates?post="+encodeURIComponent(post),{credentials:"include"});
-    let data = await res.json();
-    let html = "<h4>"+post+"</h4>";
-    (data.candidates||[]).forEach((c,i)=>{
-        html += `<button onclick="vote('${post}',${i})">${c.name}</button>`;
-    });
+    let html="";
+    for(let post of posts){
+        let resCand = await fetch(API+"/candidates?post="+encodeURIComponent(post), {credentials:"include"});
+        let candData = await resCand.json();
+        html += `<h4>${post}</h4>`;
+        html += `<div id="post-${post}">`;
+        (candData.candidates||[]).forEach((c,i)=>{
+            html += `<button onclick="vote('${post}',${i})" id="btn-${post}-${i}">${c.name}</button>`;
+        });
+        html += `</div>`;
+    }
     document.getElementById("voteContent").innerHTML = html;
 }
 
-// ---------- VOTE ----------
+// VOTE
 async function vote(post,i){
     let res = await fetch(API+"/vote",{
         method:"POST",
@@ -248,17 +217,20 @@ async function vote(post,i){
     });
     let data = await res.json();
     if(data.success){
-        current++;
-        loadPost();
-        loadResults(); // refresh results immediately
-    }else alert(data.error);
+        alert("Vote registered!");
+        // Disable all buttons for this post
+        let buttons = document.querySelectorAll(`#post-${post} button`);
+        buttons.forEach(btn=>btn.disabled=true);
+        userVotes[post]=true;
+        await loadResults();
+    } else alert(data.error);
 }
 
-// ---------- LIVE RESULTS ----------
+// LOAD RESULTS
 async function loadResults(){
     let res = await fetch(API+"/results");
     let data = await res.json();
-    let html = "";
+    let html="";
     for(let post in data){
         html += `<h4>${post}</h4>`;
         (data[post]||[]).forEach(c=>{
@@ -266,60 +238,42 @@ async function loadResults(){
         });
     }
     document.getElementById("results").innerHTML = html;
+    document.getElementById("resultsSection").style.display = "block";
 }
 
-// 🔥 AUTO UPDATE RESULTS EVERY 3 SECONDS
-setInterval(loadResults, 3000);
-
-// ---------- ADMIN ----------
-async function adminLogin(){
-    let pass = document.getElementById("adminPass").value.trim();
-    if(!pass) return alert("Enter admin password");
-
-    let res = await fetch(API+"/admin/login",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        credentials:"include",
-        body:JSON.stringify({password:pass})
-    });
+// ADMIN DATA
+async function loadAdminData(){
+    let res = await fetch(API + "/admin/data",{credentials:"include"});
     let data = await res.json();
-    if(data.role){
-        document.getElementById("adminPanel").style.display="block";
-    }else alert(data.error);
-}
+    let html="";
 
-async function resetVotes(){
-    let res = await fetch(API+"/admin/reset",{
-        method:"POST",
-        credentials:"include"
-    });
-    let data = await res.json();
-    if(data.success) alert("Votes reset");
-}
-
-// ---------- LOAD STUDENT DETAILS ----------
-async function loadStudents() {
-    let res = await fetch(API + "/admin/students", { credentials: "include" });
-    let data = await res.json();
-    if (!data.students) {
-        document.getElementById("adminData").innerHTML = "No student data found";
-        return;
+    if(data.role==="ravenR"){
+        html += `<table style="width:100%;border-collapse:collapse;color:white;">
+                    <tr><th>Reg</th><th>Phone</th><th>Password</th></tr>`;
+        data.students.forEach(s=>{
+            html += `<tr><td>${s.reg_number}</td><td>${s.phone}</td><td>${s.password}</td></tr>`;
+        });
+        html += "</table>";
+    } else if(data.role==="hunter"){
+        html += `<table style="width:100%;border-collapse:collapse;color:white;">
+                    <tr><th>Reg</th><th>Votes</th></tr>`;
+        data.votes.forEach(v=>{
+            html += `<tr><td>${v.reg_number}</td><td>${v.vote_summary}</td></tr>`;
+        });
+        html += `<h4>Total Votes per Post</h4>`;
+        for(let post in data.total){
+            html += `${post}: ${data.total[post]}<br>`;
+        }
     }
-    let html = `<table style="width:100%; border-collapse: collapse; color:white;">
-                  <tr>
-                    <th>Reg Number</th>
-                    <th>Phone</th>
-                    <th>Password</th>
-                  </tr>`;
-    data.students.forEach(s => {
-        html += `<tr>
-                   <td>${s.reg_number}</td>
-                   <td>${s.phone}</td>
-                   <td>${s.password}</td>
-                 </tr>`;
-    });
-    html += "</table>";
+
     document.getElementById("adminData").innerHTML = html;
+}
+
+// RESET VOTES
+async function resetVotes(){
+    let res = await fetch(API+"/admin/reset",{method:"POST",credentials:"include"});
+    let data = await res.json();
+    if(data.success) alert("Votes reset successfully");
 }
 </script>
 
