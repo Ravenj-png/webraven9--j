@@ -66,13 +66,20 @@ def admin_required(role=None):
         return decorated_function
     return decorator
 
+def get_request_data():
+    if request.is_json:
+        return request.get_json()
+    else:
+        return request.for.to.dict()
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
 @app.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
+    data = get_request_data()
     reg = data.get('reg_number')
     phone = data.get('phone')
 
@@ -97,7 +104,7 @@ def register():
 
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
+    data = get_request_data()
     reg = data.get('reg_number')
     password = data.get('password')
 
