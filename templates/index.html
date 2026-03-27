@@ -4,12 +4,11 @@
 <title>Voting System</title>
 
 <style>
-/* BODY - toned down neon yellow-green */
 body{
     margin:0;
     font-family:Arial;
-    /* neon sun gradient - less harsh */
-    background: radial-gradient(circle at top left, #c4ff00, #aaff33, #66ff66, #0b0c10);
+    /* Neon sun background toned green-blue */
+    background: radial-gradient(circle at top left, #aaff33, #66ffcc, #0b0c10);
     color:white;
     display:flex;
     flex-direction:column;
@@ -17,45 +16,7 @@ body{
     position:relative;
 }
 
-/* BUTTON - toned neon glow */
-button{
-    width:100%;
-    padding:12px;
-    border:none;
-    border-radius:8px;
-    background: linear-gradient(135deg, #c4ff00, #aaff33, #66ff66);
-    color:black;
-    font-weight:bold;
-    cursor:pointer;
-    margin-top:5px;
-    box-shadow: 0 0 6px #c4ff00, 0 0 12px #aaff33;
-    transition: 0.3s all;
-}
-
-button:hover{
-    opacity:0.85;
-    box-shadow: 0 0 10px #ffff33, 0 0 18px #aaff33;
-}
-
-/* INPUT - subtle neon glow */
-input{
-    width:100%;
-    padding:12px;
-    margin:10px 0;
-    border:none;
-    border-radius:8px;
-    background: rgba(0,0,0,0.25);
-    color:white;
-    box-shadow: 0 0 4px #aaff33 inset;
-    transition: 0.2s;
-}
-
-input:focus{
-    box-shadow: 0 0 8px #ffff33 inset;
-    outline:none;
-}
-
-/* WhatsApp QR glow */
+/* FLOATING WHATSAPP QR */
 #whatsappQR{
     position:fixed;
     top:10px;
@@ -65,13 +26,77 @@ input:focus{
     background:white;
     border-radius:15px;
     padding:5px;
-    box-shadow: 0 0 8px #c4ff00, 0 0 15px #aaff33;
+    box-shadow: 0 0 6px #66ffcc, 0 0 12px #33ccff;
     z-index:9999;
+}
+
+#whatsappQR img{
+    width:100%;
+    height:100%;
+    border-radius:10px;
+    transition: 0.3s;
 }
 #whatsappQR img:hover{
     transform: scale(1.05);
-    box-shadow: 0 0 12px #ffff33, 0 0 22px #aaff33;
+    box-shadow: 0 0 12px #33ccff, 0 0 22px #66ffcc;
 }
+
+/* GLASS BOX */
+.section{
+    width:90%;
+    max-width:500px;
+    padding:20px;
+    margin:20px;
+    background: rgba(0,0,0,0.2);
+    border-radius:15px;
+    border:1px solid rgba(0,0,0,0.4);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 12px rgba(0,255,255,0.25);
+}
+
+/* INPUT */
+input{
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border:none;
+    border-radius:8px;
+    background: rgba(0,0,0,0.25);
+    color:white;
+    box-shadow: 0 0 4px #33ccff inset;
+    transition: 0.2s;
+}
+input:focus{
+    box-shadow: 0 0 8px #66ffcc inset;
+    outline:none;
+}
+
+/* BUTTON */
+button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background: linear-gradient(135deg, #aaff33, #33ccff);
+    color:black;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:5px;
+    box-shadow: 0 0 6px #33ccff, 0 0 12px #66ffcc;
+    transition: 0.3s all;
+}
+button:hover{
+    opacity:0.85;
+    box-shadow: 0 0 10px #33ccff, 0 0 20px #66ffcc;
+}
+
+h2{text-align:center;}
+table th, table td{
+    border:1px solid white;
+    padding:5px;
+    text-align:center;
+}
+a{color:yellow;}
 </style>
 </head>
 
@@ -167,7 +192,7 @@ async function login(){
         alert("Logged in");
         document.getElementById("voteArea").style.display="block";
         loadVoting();
-        loadResults(); // start results live update
+        loadResults(); // start live results update
     }else alert(data.error);
 }
 
@@ -203,7 +228,6 @@ async function loadVoting(){
 
 async function loadPost(){
     if(current >= posts.length) return;
-
     let post = posts[current];
     let res = await fetch(API+"/candidates?post="+encodeURIComponent(post),{credentials:"include"});
     let data = await res.json();
