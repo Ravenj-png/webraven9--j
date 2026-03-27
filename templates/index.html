@@ -159,18 +159,32 @@ function register(){
         else alert(data.error);
     });
 }
-
-function login(){
+    
+function login() {
     let reg = document.getElementById("loginReg").value;
     let password = document.getElementById("loginPassword").value;
-    fetch(API + "/login",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        credentials: "include",
-        body: JSON.stringify({reg_number:reg,password:password})
-    }).then(res=>res.json()).then(data=>{
-        if(data.success){ showVote(); loadVoting(); loadResults();}
-        else alert(data.error);
+
+    fetch(API + "/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",        // required for session cookies
+        body: JSON.stringify({
+            reg_number: reg,
+            password: password
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("Login successful!");
+            // Redirect or update UI
+        } else {
+            alert(data.error || "Login failed");
+        }
+    })
+    .catch(err => {
+        console.error("Login error:", err);
+        alert("An error occurred. Check console.");
     });
 }
 
