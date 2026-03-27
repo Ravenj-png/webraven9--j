@@ -7,11 +7,11 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import datetime
+from flask_session import Session
 
 app = Flask(__name__)
 CORS(app)
 
-from flask_session import Session
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key')
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_COOKIE_SAMESITE'] = None
@@ -70,7 +70,7 @@ def get_request_data():
     if request.is_json:
         return request.get_json()
     else:
-        return request.for.to.dict()
+        return request.form.to.dict()
 
 @app.route('/')
 def index():
