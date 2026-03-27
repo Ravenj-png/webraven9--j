@@ -4,3 +4,4 @@ Flask-SQLAlchemy
 gunicorn
 Werkzeug
 flask-session
+psycopg2-binary
