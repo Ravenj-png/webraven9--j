@@ -5,14 +5,99 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voting System</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
-        .section { background: #f4f4f4; padding: 1rem; margin: 1rem 0; border-radius: 8px; }
-        input, button { margin: 0.5rem 0; padding: 0.5rem; width: 100%; box-sizing: border-box; }
-        button { background: #007bff; color: white; border: none; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        .error { color: red; }
-        .success { color: green; }
-        pre { background: #eee; padding: 0.5rem; overflow-x: auto; }
+        body{
+    margin:0;
+    padding:0;
+    font-family:Arial,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: radial-gradient(circle at top left, #0f2027, #0b0c10);
+    color:white;
+}
+
+/* MAIN BOX (GLASS STYLE) */
+.section{
+    width:90%;
+    max-width:400px;
+    padding:25px;
+
+    background: rgba(255,255,255,0.05);
+    border-radius:15px;
+
+    /* soft border */
+    border:1px solid rgba(255,255,255,0.15);
+
+    /* glass blur */
+    backdrop-filter: blur(12px);
+
+    /* soft glow (NOT loud) */
+    box-shadow:
+        0 0 10px rgba(0,255,255,0.2),
+        0 0 20px rgba(0,255,255,0.1);
+}
+
+/* INPUTS */
+input{
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+
+    border:none;
+    border-radius:8px;
+
+    background: rgba(255,255,255,0.08);
+    color:white;
+
+    outline:none;
+}
+
+/* subtle focus glow */
+input:focus{
+    box-shadow: 0 0 5px rgba(0,255,255,0.5);
+}
+
+/* BUTTON */
+button{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+
+    border:none;
+    border-radius:8px;
+
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    color:white;
+    font-weight:bold;
+
+    cursor:pointer;
+
+    /* soft glow */
+    box-shadow: 0 0 8px rgba(0,114,255,0.4);
+}
+
+/* button hover (smooth, not aggressive) */
+button:hover{
+    opacity:0.9;
+}
+
+/* TEXT LINKS */
+p{
+    cursor:pointer;
+    font-size:14px;
+    opacity:0.8;
+}
+
+p:hover{
+    opacity:1;
+}
+
+/* HEADINGS */
+h2{
+    margin-bottom:15px;
+    font-weight:normal;
+}
     </style>
 </head>
 <body>
