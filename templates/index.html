@@ -3,6 +3,7 @@
 <head>
 <title>Voting System</title>
 <style>
+/* (same CSS as before – no changes) */
 * {
     margin: 0;
     padding: 0;
@@ -438,6 +439,8 @@ async function restoreAdminSession() {
             <h4>Reset Student Password</h4>
             <input id="resetReg" placeholder="Student Registration Number">
             <button onclick="resetStudentPassword()">Reset Password</button>
+            <hr>
+            <button class="logout-btn" onclick="adminLogout()">Logout</button>
         `;
     } else if (adminRole === "hunter") {
         document.getElementById("adminControls").innerHTML = `
@@ -448,6 +451,8 @@ async function restoreAdminSession() {
             <h4>Reset Student Password</h4>
             <input id="resetReg" placeholder="Student Registration Number">
             <button onclick="resetStudentPassword()">Reset Password</button>
+            <hr>
+            <button class="logout-btn" onclick="adminLogout()">Logout</button>
         `;
         await loadCandidateListForHunter();
     }
@@ -508,11 +513,11 @@ async function loadStudents() {
     try {
         const data = await apiFetch(API+"/admin/students", {credentials:"include"});
         let html = `<table style="width:100%;border-collapse:collapse;margin-top:15px;">
-                         <thead><tr><th>Reg Number</th><th>Phone</th><th>Voted?</th>\
+                         <thead>汽<th>Reg Number</th><th>Phone</th><th>Voted?</th>\
                          </thead><tbody>`;
         data.forEach(s => {
             html += `\
-                <tr><td>${s.reg_number}</td><td>${s.phone}</td><td>${s.has_voted ? 'Yes' : 'No'}</td></tr>`;
+                 <tr><td>${s.reg_number}</td><td>${s.phone}</td><td>${s.has_voted ? 'Yes' : 'No'}</td></tr>`;
         });
         html += `</tbody></table>`;
         document.getElementById("adminData").innerHTML += html;
@@ -557,6 +562,13 @@ async function updateAdminResults() {
     } else {
         resultsDiv.innerHTML = html + resultsDiv.innerHTML;
     }
+}
+
+async function adminLogout() {
+    try {
+        await fetch(API+"/logout", {method:"POST", credentials:"include"});
+    } catch(e) {}
+    window.location.reload();
 }
 
 // ---------- Page Load ----------
