@@ -30,24 +30,26 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # ---------- CORS ----------
+# Replace with your actual Render URL
 CORS(app,
      supports_credentials=True,
-     origins=["https://webraven9-j.onrender.com"])   # replace with your actual URL
+     origins=["https://webraven9-j.onrender.com"])
 
 # ---------- Allowed Registration Numbers ----------
 ALLOWED_REGS = {
     "BACS/25D/U/A0001",
     "BACS/25D/U/A0002",
     "BACS/25D/U/A0003",
-    "BAEC/25W/U/A0004",
+    # Add more as needed
 }
 
+# ---------- Models ----------
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     reg_number = db.Column(db.String(30), unique=True, nullable=False)
     phone = db.Column(db.String(20), nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
-    voted_posts = db.Column(db.Text, default='{}')
+    voted_posts = db.Column(db.Text, default='{}')   # stores {post: candidate_id}
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Candidate(db.Model):
@@ -212,23 +214,9 @@ def admin_login():
         return jsonify({'role': pwd})
     return jsonify({'error': 'Wrong password'}), 401
 
-@app.route('/admin/reset_votes', methods=['POST'])
-@admin_required(role='ravenR')
-def reset_votes():
-    try:
-        for c in Candidate.query.all():
-            c.votes = 0
-        for s in Student.query.all():
-            s.voted_posts = '{}'
-        db.session.commit()
-        return jsonify({'success': True})
-    except Exception as e:
-        db.session.rollback()
-        app.logger.error(f"Reset votes error: {e}")
-        return jsonify({'error': 'Server error'}), 500
-
+# Shared admin endpoint to reset student password (both roles)
 @app.route('/admin/reset_password', methods=['POST'])
-@admin_required(role='ravenR')
+@admin_required()  # both roles can reset passwords
 def reset_password():
     try:
         data = get_request_data()
@@ -245,6 +233,41 @@ def reset_password():
         app.logger.error(f"Reset password error: {e}")
         return jsonify({'error': 'Server error'}), 500
 
+# ravenR only: reset all votes
+@app.route('/admin/reset_votes', methods=['POST'])
+@admin_required(role='ravenR')
+def reset_votes():
+    try:
+        for c in Candidate.query.all():
+            c.votes = 0
+        for s in Student.query.all():
+            s.voted_posts = '{}'
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Reset votes error: {e}")
+        return jsonify({'error': 'Server error'}), 500
+
+# hunter only: reset a single candidate's votes
+@app.route('/admin/reset_candidate_votes', methods=['POST'])
+@admin_required(role='hunter')
+def reset_candidate_votes():
+    try:
+        data = get_request_data()
+        candidate_id = data.get('candidate_id')
+        candidate = Candidate.query.get(candidate_id)
+        if not candidate:
+            return jsonify({'error': 'Candidate not found'}), 404
+        candidate.votes = 0
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Reset candidate votes error: {e}")
+        return jsonify({'error': 'Server error'}), 500
+
+# ravenR only: list all students
 @app.route('/admin/students')
 @admin_required(role='ravenR')
 def students():
@@ -261,6 +284,7 @@ def students():
         app.logger.error(f"Students list error: {e}")
         return jsonify({'error': 'Server error'}), 500
 
+# hunter only: view results (same as public but via admin)
 @app.route('/admin/votes')
 @admin_required(role='hunter')
 def admin_votes():
@@ -269,7 +293,7 @@ def admin_votes():
         result = {}
         for (post,) in posts:
             result[post] = [
-                {'name': c.name, 'votes': c.votes}
+                {'id': c.id, 'name': c.name, 'votes': c.votes}
                 for c in Candidate.query.filter_by(post=post).all()
             ]
         return jsonify(result)
@@ -286,8 +310,6 @@ with app.app_context():
             Candidate(name='Bob', post='President'),
             Candidate(name='Charlie', post='Secretary'),
             Candidate(name='David', post='Secretary'),
-            Candidate(name='Raven', post='Security'),
-            Candidate(name='Munyagwa', post='Security'),
         ]
         db.session.add_all(default_candidates)
         db.session.commit()
