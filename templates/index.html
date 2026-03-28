@@ -8,7 +8,6 @@
     padding: 0;
     box-sizing: border-box;
 }
-
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
@@ -19,95 +18,82 @@ body {
     padding: 2rem 1rem;
     color: #f0f0f0;
 }
-
-/* Animated heading */
+.main-container {
+    width: 90%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+.section {
+    width: 100%;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    border: 1px solid rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(12px);
+}
 h2 {
     text-align: center;
     font-size: 2.2rem;
-    color: #ffdd99;
+    color: #ff9900;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     animation: slideIn 0.8s ease-out, pulseGlow 2s infinite;
-    display: inline-block;
-    width: auto;
 }
-
 @keyframes slideIn {
     0% { transform: translateY(-50px); opacity: 0; }
     100% { transform: translateY(0); opacity: 1; }
 }
-
 @keyframes pulseGlow {
-    0% { text-shadow: 0 0 0px #ffdd99; }
+    0% { text-shadow: 0 0 0px #ff9900; }
     50% { text-shadow: 0 0 15px #ffaa33; }
-    100% { text-shadow: 0 0 0px #ffdd99; }
+    100% { text-shadow: 0 0 0px #ff9900; }
 }
-
-/* WhatsApp QR */
-#whatsappQR{
-    position:fixed;
-    top:10px;
-    right:10px;
-    width:100px;
-    height:100px;
-    background:white;
-    border-radius:15px;
-    padding:5px;
+#whatsappQR {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 100px;
+    height: 100px;
+    background: white;
+    border-radius: 15px;
+    padding: 5px;
     box-shadow: 0 0 6px #33ccff, 0 0 12px #66ffcc;
-    z-index:9999;
+    z-index: 9999;
 }
-#whatsappQR img{
-    width:100%;
-    height:100%;
-    border-radius:10px;
+#whatsappQR img {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
 }
-.section{
-    width:90%;
-    max-width:500px;
-    padding:20px;
-    margin:20px;
-    background: rgba(0,0,0,0.2);
-    border-radius:15px;
-    border:1px solid rgba(0,0,0,0.4);
-    backdrop-filter: blur(12px);
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.25);
+    color: white;
 }
-input{
-    width:100%;
-    padding:12px;
-    margin:10px 0;
-    border:none;
-    border-radius:8px;
-    background: rgba(0,0,0,0.25);
-    color:white;
-}
-button{
-    width:100%;
-    padding:12px;
-    border:none;
-    border-radius:8px;
+button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
     background: linear-gradient(135deg, #66ffcc, #33ccff);
-    color:black;
-    font-weight:bold;
-    cursor:pointer;
-    margin-top:5px;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 5px;
 }
-button:hover{opacity:0.85;}
-button:disabled{
-    opacity:0.4;
-    cursor:not-allowed;
-}
-table th, table td{
-    border:1px solid white;
-    padding:5px;
-    text-align:center;
-}
-a{
-    color:yellow;
-    text-decoration:none;
-    display:inline-block;
-    margin-top:10px;
-    text-align:center;
-    width:100%;
+button:hover { opacity: 0.85; }
+a {
+    color: yellow;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 10px;
+    text-align: center;
+    width: 100%;
 }
 hr {
     margin: 15px 0;
@@ -120,7 +106,6 @@ hr {
     border-radius: 12px;
     cursor: pointer;
     text-align: center;
-    transition: background 0.2s;
 }
 .post-item:hover {
     background: rgba(0,0,0,0.6);
@@ -154,46 +139,84 @@ hr {
     color: #ffd966;
     margin-bottom: 10px;
 }
+.admin-results {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 12px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+th, td {
+    border: 1px solid white;
+    padding: 5px;
+    text-align: center;
+}
 </style>
 </head>
 <body>
 
-<h2>✨ VOTING SYSTEM ✨</h2>
+<div class="main-container">
+    <h2>VOTING SYSTEM</h2>
 
-<div id="whatsappQR">
-  <a href="https://wa.me/256741227707" target="_blank">
-    <img src="https://api.qrserver.com/v1/create-qr-code/?data=https://wa.me/256741227707&size=100x100" alt="WhatsApp QR">
-  </a>
-</div>
+    <div id="whatsappQR">
+        <a href="https://wa.me/256741227707" target="_blank">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?data=https://wa.me/256741227707&size=100x100" alt="WhatsApp QR">
+        </a>
+    </div>
 
-<!-- STUDENT CONTAINER (login + voting + results) -->
-<div id="studentContainer" class="section"></div>
+    <!-- Student Login Block -->
+    <div id="studentLoginBlock" class="section">
+        <h3>Student Login</h3>
+        <input id="loginReg" placeholder="Reg Number">
+        <input id="loginPassword" type="password" placeholder="Password">
+        <button onclick="studentLogin()">Login</button>
+        <a href="https://wa.me/256741227707?text=Password%20reset%20for%20voting%20system" target="_blank">Forgot Password?</a>
+    </div>
 
-<!-- REGISTER -->
-<div class="section">
-<h3>Register</h3>
-<input id="regReg" placeholder="Reg Number">
-<input id="regPhone" placeholder="Phone">
-<button onclick="register()">Register</button>
-</div>
+    <!-- Registration Block -->
+    <div id="registerBlock" class="section">
+        <h3>Register</h3>
+        <input id="regReg" placeholder="Reg Number">
+        <input id="regPhone" placeholder="Phone">
+        <button onclick="register()">Register</button>
+    </div>
 
-<!-- ADMIN LOGIN -->
-<div class="section">
-<h3>Admin Login</h3>
-<input id="adminPassword" type="password" placeholder="Admin Password">
-<button onclick="adminLogin()">Login as Admin</button>
-</div>
+    <!-- Admin Login Block -->
+    <div id="adminLoginBlock" class="section">
+        <h3>Admin Login</h3>
+        <input id="adminPassword" type="password" placeholder="Admin Password">
+        <button onclick="adminLogin()">Login as Admin</button>
+    </div>
 
-<!-- ADMIN PANEL -->
-<div id="adminPanel" class="section" style="display:none;">
-<h3>Admin Panel</h3>
-<div id="adminRoleMessage"></div>
-<div id="adminControls"></div>
-<div id="adminData"></div>
+    <!-- Public Results Block (visible only when NOT logged in) -->
+    <div id="publicResults" class="section">
+        <h3>Live Results 🔥</h3>
+        <div id="results">Loading...</div>
+    </div>
+
+    <!-- Voting Dashboard (hidden until student logs in) -->
+    <div id="votingDashboard" class="section" style="display:none;">
+        <h3>Voting Dashboard</h3>
+        <div id="voteContent"></div>
+        <div id="studentResults" class="results-inline"></div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Admin Panel (hidden until admin logs in) -->
+    <div id="adminPanel" class="section" style="display:none;">
+        <h3>Admin Panel</h3>
+        <div id="adminRoleMessage"></div>
+        <div id="adminControls"></div>
+        <div id="adminData"></div>
+    </div>
 </div>
 
 <script>
-const API = "https://webraven9-j.onrender.com";
+const API = "https://webraven9-j.onrender.com";  // replace with your actual URL
 
 async function apiFetch(url, options = {}) {
     try {
@@ -206,28 +229,7 @@ async function apiFetch(url, options = {}) {
     }
 }
 
-// ---------- Student UI ----------
-function showLoginForm() {
-    const container = document.getElementById("studentContainer");
-    container.innerHTML = `
-        <h3>Student Login</h3>
-        <input id="loginReg" placeholder="Reg Number">
-        <input id="loginPassword" type="password" placeholder="Password">
-        <button onclick="studentLogin()">Login</button>
-        <a href="https://wa.me/256741227707?text=Password%20reset%20for%20voting%20system" target="_blank">Forgot Password?</a>
-    `;
-}
-
-function showVotingUI() {
-    const container = document.getElementById("studentContainer");
-    container.innerHTML = `
-        <h3>Vote</h3>
-        <div id="voteContent"></div>
-        <div id="studentResults" class="results-inline"></div>
-        <button class="logout-btn" onclick="logout()">Logout</button>
-    `;
-}
-
+// ---------- Student Login & Session ----------
 async function studentLogin() {
     const reg = document.getElementById("loginReg").value.trim();
     const pass = document.getElementById("loginPassword").value.trim();
@@ -253,11 +255,16 @@ async function restoreStudentSession() {
             posts_order: data.posts_order,
             voted_posts: data.voted_posts || {}
         };
-        showVotingUI();
+        // Hide login/register/admin blocks and public results, show voting dashboard
+        document.getElementById("studentLoginBlock").style.display = "none";
+        document.getElementById("registerBlock").style.display = "none";
+        document.getElementById("adminLoginBlock").style.display = "none";
+        document.getElementById("publicResults").style.display = "none";
+        document.getElementById("votingDashboard").style.display = "block";
         buildVotingList();
-        await updateStudentResults(); // load results inside student container
+        await updateStudentResults(); // results will appear inside dashboard
     } catch(e) {
-        showLoginForm();
+        // Not logged in – keep blocks visible
     }
 }
 
@@ -320,8 +327,8 @@ async function vote(post, candidateId) {
         window.studentData.voted_posts[post] = candidateId;
         votedPosts = window.studentData.voted_posts;
         buildVotingList();
-        await updateStudentResults(); // refresh results in student area
-        await updateAdminResults();   // also refresh admin results if open
+        await updateStudentResults(); // update results inside dashboard
+        if (adminRole) await updateAdminResults(); // update admin panel if open
     } catch(e) {
         alert(e.message);
     }
@@ -334,12 +341,20 @@ async function logout() {
     window.location.reload();
 }
 
-// ---------- Results (both for student container and admin) ----------
-async function loadResultsData() {
+// ---------- Results (public and student) ----------
+async function loadResults() {
     try {
-        return await apiFetch(API+"/results");
+        const data = await apiFetch(API+"/results");
+        let html = "";
+        for (let post in data) {
+            html += `<h4>${post}</h4>`;
+            data[post].forEach(c => {
+                html += `${c.name}: ${c.votes}<br>`;
+            });
+        }
+        document.getElementById("results").innerHTML = html;
     } catch(e) {
-        return null;
+        document.getElementById("results").innerHTML = "Error loading results.";
     }
 }
 
@@ -360,23 +375,31 @@ async function updateStudentResults() {
     document.getElementById("studentResults").innerHTML = html;
 }
 
-// This function will be called by admin to refresh the results inside admin panel
-async function updateAdminResults() {
-    const data = await loadResultsData();
-    if (!data) return;
-    const resultsDiv = document.getElementById("adminData");
-    if (!resultsDiv) return;
-    let html = "<h4>Live Results</h4>";
-    for (let post in data) {
-        html += `<strong>${post}</strong><br>`;
-        data[post].forEach(c => {
-            html += `${c.name}: ${c.votes}<br>`;
-        });
-        html += "<br>";
+async function loadResultsData() {
+    try {
+        return await apiFetch(API+"/results");
+    } catch(e) {
+        return null;
     }
-    // If there's existing content we don't want to overwrite student list; we'll prepend or show in a separate area.
-    // We'll put results at the top of adminData.
-    resultsDiv.innerHTML = html + resultsDiv.innerHTML;
+}
+
+// ---------- Registration ----------
+async function register() {
+    const reg = document.getElementById("regReg").value.trim().toUpperCase();
+    const phone = document.getElementById("regPhone").value.trim();
+    if (!reg || !phone) return alert("Enter all details");
+    try {
+        const data = await apiFetch(API+"/register", {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({reg_number:reg, phone:phone})
+        });
+        alert("Your password: "+data.password);
+        document.getElementById("regReg").value = "";
+        document.getElementById("regPhone").value = "";
+    } catch(e) {
+        alert(e.message);
+    }
 }
 
 // ---------- Admin ----------
@@ -402,31 +425,82 @@ async function adminLogin() {
 async function restoreAdminSession() {
     document.getElementById("adminPanel").style.display = "block";
     document.getElementById("adminRoleMessage").innerHTML = `<p>Logged in as: <strong>${adminRole}</strong></p>`;
-    // Clear previous controls
     document.getElementById("adminControls").innerHTML = "";
     document.getElementById("adminData").innerHTML = "";
-
-    // Show results first (common for both)
     await updateAdminResults();
 
     if (adminRole === "ravenR") {
-        // Add full controls
-        const controls = document.createElement("div");
-        controls.innerHTML = `
+        document.getElementById("adminControls").innerHTML = `
             <hr>
-            <button onclick="resetVotes()">Reset All Votes</button>
+            <button onclick="resetAllVotes()">Reset All Votes</button>
             <button onclick="loadStudents()">Load Students</button>
             <hr>
             <h4>Reset Student Password</h4>
             <input id="resetReg" placeholder="Student Registration Number">
             <button onclick="resetStudentPassword()">Reset Password</button>
         `;
-        document.getElementById("adminControls").appendChild(controls);
     } else if (adminRole === "hunter") {
-        // For hunter, just a message maybe, results already shown
-        const controls = document.createElement("div");
-        controls.innerHTML = `<p>You have view‑only access. Results are displayed above.</p>`;
-        document.getElementById("adminControls").appendChild(controls);
+        document.getElementById("adminControls").innerHTML = `
+            <hr>
+            <h4>Reset Candidate Votes</h4>
+            <div id="candidateList"></div>
+            <hr>
+            <h4>Reset Student Password</h4>
+            <input id="resetReg" placeholder="Student Registration Number">
+            <button onclick="resetStudentPassword()">Reset Password</button>
+        `;
+        await loadCandidateListForHunter();
+    }
+}
+
+async function loadCandidateListForHunter() {
+    try {
+        const data = await apiFetch(API+"/admin/votes", {credentials:"include"});
+        let html = "";
+        for (let post in data) {
+            html += `<strong>${post}</strong><br>`;
+            data[post].forEach(c => {
+                html += `${c.name} (${c.votes} votes) <button onclick="resetCandidateVotes(${c.id})">Reset</button><br>`;
+            });
+            html += "<br>";
+        }
+        document.getElementById("candidateList").innerHTML = html;
+    } catch(e) {
+        document.getElementById("candidateList").innerHTML = `<p>Error: ${e.message}</p>`;
+    }
+}
+
+async function resetCandidateVotes(candidateId) {
+    if (!confirm("Reset votes for this candidate?")) return;
+    try {
+        await apiFetch(API+"/admin/reset_candidate_votes", {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            credentials:"include",
+            body:JSON.stringify({candidate_id: candidateId})
+        });
+        alert("Candidate votes reset.");
+        await updateAdminResults();
+        if (adminRole === "hunter") await loadCandidateListForHunter();
+        await updateStudentResults(); // also update student dashboard if open
+    } catch(e) {
+        alert(e.message);
+    }
+}
+
+async function resetAllVotes() {
+    if (!confirm("Reset all votes? This cannot be undone.")) return;
+    try {
+        await apiFetch(API+"/admin/reset_votes", {method:"POST", credentials:"include"});
+        alert("All votes reset.");
+        await updateAdminResults();
+        await updateStudentResults();
+        // Refresh student dashboard if open
+        if (document.getElementById("votingDashboard").style.display === "block") {
+            await restoreStudentSession();
+        }
+    } catch(e) {
+        alert(e.message);
     }
 }
 
@@ -434,34 +508,16 @@ async function loadStudents() {
     try {
         const data = await apiFetch(API+"/admin/students", {credentials:"include"});
         let html = `<table style="width:100%;border-collapse:collapse;margin-top:15px;">
-                         <thead><tr><th>Reg Number</th><th>Phone</th><th>Voted?</th></tr></thead>
-                         <tbody>`;
+                         <thead><tr><th>Reg Number</th><th>Phone</th><th>Voted?</th>\
+                         </thead><tbody>`;
         data.forEach(s => {
-            html += `<tr><td>${s.reg_number}</td><td>${s.phone}</td><td>${s.has_voted ? 'Yes' : 'No'}</td></tr>`;
+            html += `\
+                <tr><td>${s.reg_number}</td><td>${s.phone}</td><td>${s.has_voted ? 'Yes' : 'No'}</td></tr>`;
         });
         html += `</tbody></table>`;
-        // Append to adminData (keeping results above)
-        const existing = document.getElementById("adminData").innerHTML;
-        document.getElementById("adminData").innerHTML = existing + html;
+        document.getElementById("adminData").innerHTML += html;
     } catch(e) {
         document.getElementById("adminData").innerHTML += `<p>Error: ${e.message}</p>`;
-    }
-}
-
-async function resetVotes() {
-    if (!confirm("Reset all votes? This cannot be undone.")) return;
-    try {
-        await apiFetch(API+"/admin/reset_votes", {method:"POST", credentials:"include"});
-        alert("Votes reset.");
-        // Refresh results in both places
-        await updateStudentResults();
-        await updateAdminResults();
-        // If student logged in, refresh their UI
-        if (document.getElementById("studentContainer").innerHTML.includes("Vote")) {
-            await restoreStudentSession();
-        }
-    } catch(e) {
-        alert(e.message);
     }
 }
 
@@ -481,29 +537,36 @@ async function resetStudentPassword() {
     }
 }
 
-// ---------- Register ----------
-async function register() {
-    const reg = document.getElementById("regReg").value.trim().toUpperCase();
-    const phone = document.getElementById("regPhone").value.trim();
-    if (!reg || !phone) return alert("Enter all details");
-    try {
-        const data = await apiFetch(API+"/register", {
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({reg_number:reg, phone:phone})
+async function updateAdminResults() {
+    const data = await loadResultsData();
+    if (!data) return;
+    const resultsDiv = document.getElementById("adminData");
+    if (!resultsDiv) return;
+    let html = '<div class="admin-results"><h4>Live Results</h4>';
+    for (let post in data) {
+        html += `<strong>${post}</strong><br>`;
+        data[post].forEach(c => {
+            html += `${c.name}: ${c.votes}<br>`;
         });
-        alert("Your password: "+data.password);
-        document.getElementById("regReg").value = "";
-        document.getElementById("regPhone").value = "";
-    } catch(e) {
-        alert(e.message);
+        html += "<br>";
+    }
+    html += '</div>';
+    // Keep existing content (students list, etc.) but replace results part
+    if (resultsDiv.innerHTML.includes('admin-results')) {
+        resultsDiv.innerHTML = html + resultsDiv.innerHTML.replace(/<div class="admin-results">.*?<\/div>/, '');
+    } else {
+        resultsDiv.innerHTML = html + resultsDiv.innerHTML;
     }
 }
 
 // ---------- Page Load ----------
 window.onload = async function() {
-    await restoreStudentSession();
-    // Try to restore admin session
+    await restoreStudentSession(); // will show voting dashboard if session exists, else show login blocks
+    // If not logged in, load public results
+    if (document.getElementById("publicResults").style.display !== "none") {
+        await loadResults();
+    }
+    // Check admin session
     try {
         const res = await fetch(API+"/admin/students", {credentials:"include"});
         if (res.ok) {
