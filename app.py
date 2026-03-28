@@ -40,6 +40,8 @@ ALLOWED_REGS = {
     "BACS/25D/U/A0001",
     "BACS/25D/U/A0002",
     "BACS/25D/U/A0003",
+    "BAIT/25D/U/A0004",
+    "BAMA/25D/U/A0005",
     # Add more as needed
 }
 
